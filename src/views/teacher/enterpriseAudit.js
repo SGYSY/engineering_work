@@ -6,12 +6,12 @@ export function renderTeacherEnterpriseAudit({ state, actions, toaster }) {
   header.className = "page-header";
   header.innerHTML = `
     <div>
-      <h2 class="section-title" style="margin-bottom:6px;">企业入校考核</h2>
-      <p style="color: var(--text-light); font-size: 13px;">审核企业资质材料，查看历史记录与黑白名单标记。</p>
+      <h2 class="section-title" style="margin-bottom:6px;">Enterprise Admission Review</h2>
+      <p style="color: var(--text-light); font-size: 13px;">Evaluate enterprise credentials, review history, and manage blacklist or whitelist tags.</p>
     </div>
     <div class="table-actions">
-      <button class="button button--outline">导出审核记录</button>
-      <button class="button">批量审批</button>
+      <button class="button button--outline" data-action="export">Export review logs</button>
+      <button class="button" data-action="bulk">Bulk approve</button>
     </div>
   `;
   container.appendChild(header);
@@ -30,31 +30,31 @@ export function renderTeacherEnterpriseAudit({ state, actions, toaster }) {
         <div class="page-header" style="margin-bottom:12px;">
           <div>
             <h3 class="section-title" style="margin-bottom:4px;">${company.company}</h3>
-            <div style="color: var(--text-light); font-size:12px;">提交于 ${company.submitAt}</div>
+            <div style="color: var(--text-light); font-size:12px;">Submitted on ${company.submitAt}</div>
           </div>
           <div class="table-actions">
-            <button class="button button--ghost button--sm" data-action="mark">${company.blacklist ? "移出黑名单" : "加入黑名单"}</button>
-            <button class="button button--outline button--sm" data-action="reject">驳回</button>
-            <button class="button button--sm" data-action="approve">通过</button>
+            <button class="button button--ghost button--sm" data-action="mark">${company.blacklist ? "Remove from blacklist" : "Add to blacklist"}</button>
+            <button class="button button--outline button--sm" data-action="reject">Reject</button>
+            <button class="button button--sm" data-action="approve">Approve</button>
           </div>
         </div>
         <div style="display:flex; gap:24px; flex-wrap:wrap;">
           <div style="flex:1; min-width:240px;">
-            <div style="font-weight:600; margin-bottom:8px;">提交材料</div>
+            <div style="font-weight:600; margin-bottom:8px;">Submitted materials</div>
             <ul style="color:#3a4f72; display:grid; gap:6px;">
               ${company.materials.map((file) => `<li>• ${file}</li>`).join("")}
             </ul>
           </div>
           <div style="flex:1; min-width:220px;">
-            <div style="font-weight:600; margin-bottom:8px;">历史记录</div>
+            <div style="font-weight:600; margin-bottom:8px;">History</div>
             <ul style="color:#3a4f72; display:grid; gap:6px;">
               ${company.history.map((record) => `<li>${record.date} · ${record.result}</li>`).join("")}
             </ul>
           </div>
           <div style="min-width:160px;">
-            <div style="font-weight:600; margin-bottom:8px;">名单标记</div>
-            <span class="badge ${company.blacklist ? "" : "badge--success"}">${company.blacklist ? "黑名单" : "白名单"}</span>
-            <div style="color: var(--text-light); font-size:12px; margin-top:10px;">审核状态：${company.status}</div>
+            <div style="font-weight:600; margin-bottom:8px;">List tag</div>
+            <span class="badge ${company.blacklist ? "" : "badge--success"}">${company.blacklist ? "Blacklist" : "Whitelist"}</span>
+            <div style="color: var(--text-light); font-size:12px; margin-top:10px;">Status: ${company.status}</div>
           </div>
         </div>
       `;
@@ -72,27 +72,27 @@ export function renderTeacherEnterpriseAudit({ state, actions, toaster }) {
     const id = card.dataset.id;
 
     if (action === "approve") {
-      actions.updateEnterpriseStatus(id, "已通过");
-      toaster.show("企业审核已通过", { type: "success" });
+      actions.updateEnterpriseStatus(id, "Approved");
+      toaster.show("Enterprise review approved", { type: "success" });
     }
     if (action === "reject") {
-      actions.updateEnterpriseStatus(id, "驳回");
-      toaster.show("企业审核已驳回", { type: "warn" });
+      actions.updateEnterpriseStatus(id, "Rejected");
+      toaster.show("Enterprise review rejected", { type: "warn" });
     }
     if (action === "mark") {
       actions.toggleEnterpriseBlacklist(id);
-      toaster.show("名单标记已更新", { type: "info" });
+      toaster.show("List mark updated", { type: "info" });
     }
   });
 
   header.addEventListener("click", (event) => {
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
-    if (target.textContent?.includes("导出")) {
-      toaster.show("审核记录已导出", { type: "success" });
+    if (target.dataset.action === "export") {
+      toaster.show("Review logs exported", { type: "success" });
     }
-    if (target.textContent?.includes("批量")) {
-      toaster.show("批量审批任务已创建", { type: "info" });
+    if (target.dataset.action === "bulk") {
+      toaster.show("Bulk approval task created", { type: "info" });
     }
   });
 

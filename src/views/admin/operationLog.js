@@ -6,12 +6,12 @@ export function renderAdminOperationLog({ state, actions, toaster }) {
   header.className = "page-header";
   header.innerHTML = `
     <div>
-      <h2 class="section-title" style="margin-bottom:6px;">操作日志</h2>
-      <p style="color: var(--text-light); font-size: 13px;">追踪平台敏感操作，支持按时间与用户筛选。</p>
+      <h2 class="section-title" style="margin-bottom:6px;">Operation logs</h2>
+      <p style="color: var(--text-light); font-size: 13px;">Track sensitive actions and filter by time or operator.</p>
     </div>
     <div class="table-actions">
-      <button class="button button--outline" data-action="export">导出日志</button>
-      <button class="button" data-action="clean">清理30天前数据</button>
+      <button class="button button--outline" data-action="export">Export logs</button>
+      <button class="button" data-action="clean">Purge data older than 30 days</button>
     </div>
   `;
   container.appendChild(header);
@@ -19,9 +19,9 @@ export function renderAdminOperationLog({ state, actions, toaster }) {
   const filters = document.createElement("div");
   filters.className = "filter-bar";
   filters.innerHTML = `
-    <input class="input" type="text" placeholder="搜索用户或动作" data-role="keyword" style="flex:1;" />
+    <input class="input" type="text" placeholder="Search user or action" data-role="keyword" style="flex:1;" />
     <input class="input" type="date" data-role="date" />
-    <button class="button button--ghost" data-action="reset">重置</button>
+    <button class="button button--ghost" data-action="reset">Reset</button>
   `;
   container.appendChild(filters);
 
@@ -31,11 +31,11 @@ export function renderAdminOperationLog({ state, actions, toaster }) {
     <table class="table table--striped">
       <thead>
         <tr>
-          <th>时间</th>
-          <th>操作人</th>
-          <th>动作</th>
-          <th>目标对象</th>
-          <th>来源IP</th>
+          <th>Time</th>
+          <th>Operator</th>
+          <th>Action</th>
+          <th>Target</th>
+          <th>Source IP</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -73,7 +73,7 @@ export function renderAdminOperationLog({ state, actions, toaster }) {
       .join("");
 
     if (!rows.length) {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:32px; color: var(--text-light);">暂无日志</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:32px; color: var(--text-light);">No logs found</td></tr>`;
     }
   }
 
@@ -92,10 +92,10 @@ export function renderAdminOperationLog({ state, actions, toaster }) {
     if (!action) return;
 
     if (action === "export") {
-      toaster.show("日志已导出", { type: "success" });
+      toaster.show("Logs exported", { type: "success" });
     }
     if (action === "clean") {
-      toaster.show("已清理过期日志", { type: "warn" });
+      toaster.show("Old logs removed", { type: "warn" });
     }
   });
 

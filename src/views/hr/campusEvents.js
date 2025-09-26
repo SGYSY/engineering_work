@@ -6,12 +6,12 @@ export function renderHrCampusEvents({ state, actions, toaster }) {
   header.className = "page-header";
   header.innerHTML = `
     <div>
-      <h2 class="section-title" style="margin-bottom:6px;">校招活动面板</h2>
-      <p style="color: var(--text-light); font-size: 13px;">查看活动日历、报名规则与企业报名表状态。</p>
+      <h2 class="section-title" style="margin-bottom:6px;">Campus recruiting panel</h2>
+      <p style="color: var(--text-light); font-size: 13px;">Review the event calendar, participation rules, and enterprise registration form.</p>
     </div>
     <div class="table-actions">
-      <button class="button button--outline">下载日历</button>
-      <button class="button">提交报名</button>
+      <button class="button button--outline" data-action="download">Download calendar</button>
+      <button class="button" data-action="submit">Submit registration</button>
     </div>
   `;
   container.appendChild(header);
@@ -23,7 +23,7 @@ export function renderHrCampusEvents({ state, actions, toaster }) {
   const calendarCard = document.createElement("section");
   calendarCard.className = "card";
   calendarCard.innerHTML = `
-    <h3 class="section-title">活动日历</h3>
+    <h3 class="section-title">Event calendar</h3>
     <div class="calendar-grid">
       ${calendar
         .map(
@@ -31,7 +31,7 @@ export function renderHrCampusEvents({ state, actions, toaster }) {
             <div class="calendar-item">
               <div style="font-weight:600;">${item.date}</div>
               <div style="margin:6px 0;">${item.title}</div>
-              <span class="badge ${item.status === "已报名" ? "badge--success" : ""}">${item.status}</span>
+              <span class="badge ${item.status === "Registered" ? "badge--success" : ""}">${item.status}</span>
             </div>
           `
         )
@@ -43,7 +43,7 @@ export function renderHrCampusEvents({ state, actions, toaster }) {
   const ruleCard = document.createElement("section");
   ruleCard.className = "card";
   ruleCard.innerHTML = `
-    <h3 class="section-title">规则说明</h3>
+    <h3 class="section-title">Participation rules</h3>
     <ul style="display:grid; gap:12px; color:#3a4f72;">
       ${rules.map((rule) => `<li>• ${rule}</li>`).join("")}
     </ul>
@@ -54,8 +54,8 @@ export function renderHrCampusEvents({ state, actions, toaster }) {
   formCard.className = "card";
   formCard.innerHTML = `
     <div class="page-header" style="margin-bottom:16px;">
-      <h3 class="section-title" style="margin-bottom:0;">企业报名表</h3>
-      <span class="badge">状态：${registrationForm.status}</span>
+      <h3 class="section-title" style="margin-bottom:0;">Enterprise registration form</h3>
+      <span class="badge">Status: ${registrationForm.status}</span>
     </div>
     <div class="form-grid">
       ${Object.entries(registrationForm)
@@ -71,12 +71,12 @@ export function renderHrCampusEvents({ state, actions, toaster }) {
         .join("")}
     </div>
     <label style="display:flex; flex-direction:column; gap:6px; font-size:12px; color: var(--text-light); margin-top:16px;">
-      备注信息
+      Notes
       <textarea class="input" name="remark">${registrationForm.remark || ""}</textarea>
     </label>
     <div class="form-actions">
-      <button class="button button--outline" data-action="save">保存草稿</button>
-      <button class="button" data-action="submit">提交审核</button>
+      <button class="button button--outline" data-action="save">Save draft</button>
+      <button class="button" data-action="submit">Submit for review</button>
     </div>
   `;
   container.appendChild(formCard);
@@ -95,22 +95,22 @@ export function renderHrCampusEvents({ state, actions, toaster }) {
 
     actions.updateCampusRegistration(payload);
     if (action === "save") {
-      toaster.show("报名表已保存草稿", { type: "success" });
+      toaster.show("Registration draft saved", { type: "success" });
     }
     if (action === "submit") {
-      toaster.show("报名信息已提交，等待审核", { type: "success" });
-      actions.updateCampusRegistration({ status: "待审" });
+      toaster.show("Registration submitted for review", { type: "success" });
+      actions.updateCampusRegistration({ status: "Reviewing" });
     }
   });
 
   header.addEventListener("click", (event) => {
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
-    if (target.textContent?.includes("下载日历")) {
-      toaster.show("活动日历已下载", { type: "success" });
+    if (target.dataset.action === "download") {
+      toaster.show("Event calendar downloaded", { type: "success" });
     }
-    if (target.textContent?.includes("提交报名")) {
-      toaster.show("报名请求已发送", { type: "info" });
+    if (target.dataset.action === "submit") {
+      toaster.show("Registration request sent", { type: "info" });
     }
   });
 
@@ -118,9 +118,9 @@ export function renderHrCampusEvents({ state, actions, toaster }) {
 }
 
 const labelMap = {
-  company: "企业名称",
-  contact: "联系人",
-  phone: "联系电话",
-  boothType: "展位需求",
-  participants: "参会人数"
+  company: "Company",
+  contact: "Contact",
+  phone: "Phone",
+  boothType: "Booth type",
+  participants: "Participants"
 };

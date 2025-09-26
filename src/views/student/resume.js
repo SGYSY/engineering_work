@@ -7,12 +7,12 @@ export function renderStudentResume({ state, actions, toaster }) {
   header.className = "page-header";
   header.innerHTML = `
     <div>
-      <h2 class="section-title" style="margin-bottom:6px;">简历中心</h2>
-      <p style="color: var(--text-light); font-size: 13px;">在线编辑简历信息，实时计算完整度并支持附件管理、PDF 导出。</p>
+      <h2 class="section-title" style="margin-bottom:6px;">Resume center</h2>
+      <p style="color: var(--text-light); font-size: 13px;">Edit resume details, monitor completeness, and manage attachments or PDF exports.</p>
     </div>
     <div class="table-actions">
-      <button class="button button--outline" data-action="preview">预览PDF</button>
-      <button class="button" data-action="export">导出简历</button>
+      <button class="button button--outline" data-action="preview">Preview PDF</button>
+      <button class="button" data-action="export">Export resume</button>
     </div>
   `;
   container.appendChild(header);
@@ -25,23 +25,23 @@ export function renderStudentResume({ state, actions, toaster }) {
         <div class="progress-ring__label">${resume.completeness}%</div>
       </div>
       <div style="flex:1;">
-        <div style="font-weight:600; margin-bottom:10px;">完善建议</div>
+        <div style="font-weight:600; margin-bottom:10px;">Improvement tips</div>
         <ul style="color:#3a4f72; display:grid; gap:8px; font-size:13px;">
-          <li>• 补充关键项目细节，提高匹配度。</li>
-          <li>• 上传近期作品集或证书，增加亮点。</li>
-          <li>• 定期更新联系方式，保持畅通。</li>
+          <li>• Enrich project details to improve matching.</li>
+          <li>• Upload recent portfolios or certificates to stand out.</li>
+          <li>• Keep contact information current.</li>
         </ul>
       </div>
       <div style="min-width:240px;">
-        <div style="font-weight:600; margin-bottom:12px;">附件资料</div>
+        <div style="font-weight:600; margin-bottom:12px;">Attachments</div>
         <div class="attachment-list">
           ${resume.attachments
             .map(
-              (item) => `<div class="attachment-item" data-id="${item.id}"><span>${item.name}</span><button class="button button--ghost button--sm" data-action="remove-att" data-id="${item.id}">移除</button></div>`
+              (item) => `<div class="attachment-item" data-id="${item.id}"><span>${item.name}</span><button class="button button--ghost button--sm" data-action="remove-att" data-id="${item.id}">Remove</button></div>`
             )
             .join("")}
         </div>
-        <button class="button button--ghost" style="margin-top:12px; width:100%;" data-action="add-att">上传附件</button>
+        <button class="button button--ghost" style="margin-top:12px; width:100%;" data-action="add-att">Add attachment</button>
       </div>
     </div>
   `;
@@ -55,8 +55,8 @@ export function renderStudentResume({ state, actions, toaster }) {
       <div class="page-header" style="margin-bottom:16px;">
         <h3 class="section-title" style="margin-bottom:0;">${step.title}</h3>
         <div class="table-actions">
-          <button class="button button--ghost button--sm" data-action="edit">编辑</button>
-          <button class="button button--outline button--sm" data-action="save">保存</button>
+          <button class="button button--ghost button--sm" data-action="edit">Edit</button>
+          <button class="button button--outline button--sm" data-action="save">Save</button>
         </div>
       </div>
       <div class="form-grid">
@@ -80,14 +80,14 @@ export function renderStudentResume({ state, actions, toaster }) {
     if (!(target instanceof HTMLElement)) return;
     const action = target.dataset.action;
     if (action === "add-att") {
-      const value = prompt("请输入附件名称，例如：作品集.pdf");
+      const value = prompt("Enter attachment name, e.g., Portfolio.pdf");
       actions.addResumeAttachment(value);
-      if (value) toaster.show("附件上传完成", { type: "success" });
+      if (value) toaster.show("Attachment uploaded", { type: "success" });
     }
     if (action === "remove-att") {
       const id = target.dataset.id;
       actions.removeResumeAttachment(id);
-      toaster.show("附件已移除", { type: "warn" });
+      toaster.show("Attachment removed", { type: "warn" });
     }
   });
 
@@ -98,10 +98,10 @@ export function renderStudentResume({ state, actions, toaster }) {
     if (!action) return;
 
     if (action === "preview") {
-      toaster.show("已生成在线预览（模拟）", { type: "info" });
+      toaster.show("Preview generated (mock)", { type: "info" });
     }
     if (action === "export") {
-      toaster.show("简历导出任务已创建", { type: "success" });
+      toaster.show("Resume export task created", { type: "success" });
     }
     if (action === "edit") {
       const card = target.closest("section[data-step]");
@@ -121,7 +121,7 @@ export function renderStudentResume({ state, actions, toaster }) {
         actions.updateResumeField(stepId, fieldId, input.value);
         input.setAttribute("disabled", "true");
       });
-      toaster.show("简历已保存，并更新完整度", { type: "success" });
+      toaster.show("Resume saved and completeness updated", { type: "success" });
     }
   });
 

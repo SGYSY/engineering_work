@@ -5,12 +5,12 @@ export function renderAdminHrPanel({ state, navigate, toaster }) {
   header.className = "page-header";
   header.innerHTML = `
     <div>
-      <h2 class="section-title" style="margin-bottom:6px;">HR端管理</h2>
-      <p style="color: var(--text-light); font-size: 13px;">掌握企业职位投放、候选人处理与校招活动进度。</p>
+      <h2 class="section-title" style="margin-bottom:6px;">HR Portal Management</h2>
+      <p style="color: var(--text-light); font-size: 13px;">Track job postings, candidate pipelines, and campus recruiting progress.</p>
     </div>
     <div class="table-actions">
-      <button class="button button--outline" data-action="open">进入HR端</button>
-      <button class="button">同步企业权限</button>
+      <button class="button button--outline" data-action="open">Open HR portal</button>
+      <button class="button" data-action="sync">Sync enterprise access</button>
     </div>
   `;
   container.appendChild(header);
@@ -22,7 +22,7 @@ export function renderAdminHrPanel({ state, navigate, toaster }) {
   const jobCard = document.createElement("section");
   jobCard.className = "card";
   jobCard.innerHTML = `
-    <h3 class="section-title">职位概览</h3>
+    <h3 class="section-title">Job overview</h3>
     <div class="data-list">
       ${hr.jobs
         .map(
@@ -30,9 +30,9 @@ export function renderAdminHrPanel({ state, navigate, toaster }) {
             <div class="data-row">
               <div>
                 <div style="font-weight:600;">${job.title}</div>
-                <div style="color: var(--text-light); font-size:12px;">曝光 ${job.exposure} · 浏览 ${job.views} · 投递 ${job.applicants}</div>
+                <div style="color: var(--text-light); font-size:12px;">Exposure ${job.exposure} · Views ${job.views} · Applicants ${job.applicants}</div>
               </div>
-              <span class="badge ${job.status === "已上线" ? "badge--success" : "badge--ghost"}">${job.status}</span>
+              <span class="badge ${job.status === "Published" ? "badge--success" : "badge--ghost"}">${job.status}</span>
             </div>
           `
         )
@@ -44,7 +44,7 @@ export function renderAdminHrPanel({ state, navigate, toaster }) {
   const candidateCard = document.createElement("section");
   candidateCard.className = "card";
   candidateCard.innerHTML = `
-    <h3 class="section-title">候选人状态</h3>
+    <h3 class="section-title">Candidate status</h3>
     <div class="data-list">
       ${hr.candidates.list
         .map(
@@ -52,7 +52,7 @@ export function renderAdminHrPanel({ state, navigate, toaster }) {
             <div class="data-row">
               <div>
                 <div style="font-weight:600;">${cand.name}</div>
-                <div style="color: var(--text-light); font-size:12px;">${cand.job} · 更新 ${cand.updatedAt}</div>
+                <div style="color: var(--text-light); font-size:12px;">${cand.job} · Updated ${cand.updatedAt}</div>
               </div>
               <span class="badge">${getStageLabel(cand.stage, hr.candidates.stages)}</span>
             </div>
@@ -66,7 +66,7 @@ export function renderAdminHrPanel({ state, navigate, toaster }) {
   const eventCard = document.createElement("section");
   eventCard.className = "card";
   eventCard.innerHTML = `
-    <h3 class="section-title">校招活动</h3>
+    <h3 class="section-title">Campus events</h3>
     <div class="data-list">
       ${hr.campusEvents.calendar
         .map(
@@ -82,16 +82,31 @@ export function renderAdminHrPanel({ state, navigate, toaster }) {
         )
         .join("")}
     </div>
-    <button class="button button--ghost" style="margin-top:16px;">查看规则</button>
+    <button class="button button--ghost" style="margin-top:16px;" data-action="view-rules">View rules</button>
   `;
   grid.appendChild(eventCard);
 
   header.addEventListener("click", (event) => {
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
-    if (target.dataset.action === "open") {
+    const action = target.dataset.action;
+    if (action === "open") {
       navigate("hr", "job-management");
-      toaster.show("已跳转到 HR 职位管理", { type: "info" });
+      toaster.show("Opened HR job management", { type: "info" });
+    }
+    if (action === "sync") {
+      toaster.show("Enterprise access sync task dispatched (mock)", { type: "success" });
+    }
+  });
+
+  eventCard.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    if (target.dataset.action === "view-rules") {
+      const rulesMessage = hr.campusEvents.rules
+        .map((rule, index) => `${index + 1}. ${rule}`)
+        .join(" | ");
+      toaster.show(`Campus event guidelines: ${rulesMessage}`, { type: "info", duration: 3600 });
     }
   });
 

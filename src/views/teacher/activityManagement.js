@@ -11,10 +11,10 @@ export function renderTeacherActivityManagement({ state, actions, toaster }) {
   header.className = "page-header";
   header.innerHTML = `
     <div>
-      <h2 class="section-title" style="margin-bottom:6px;">活动管理与审核</h2>
-      <p style="color: var(--text-light); font-size: 13px;">创建活动、审核企业报名、导出名单与生成签到二维码。</p>
+      <h2 class="section-title" style="margin-bottom:6px;">Activity Management & Review</h2>
+      <p style="color: var(--text-light); font-size: 13px;">Create events, review enterprise signups, export lists, and generate check-in QR codes.</p>
     </div>
-    <button class="button" data-action="toggle-form">创建活动</button>
+    <button class="button" data-action="toggle-form">Create activity</button>
   `;
   container.appendChild(header);
 
@@ -35,7 +35,7 @@ export function renderTeacherActivityManagement({ state, actions, toaster }) {
   const approvalCard = document.createElement("section");
   approvalCard.className = "card";
   approvalCard.innerHTML = `
-    <h3 class="section-title">企业报名审核</h3>
+    <h3 class="section-title">Enterprise signup review</h3>
     <div class="list">
       ${approvals
         .map(
@@ -43,11 +43,11 @@ export function renderTeacherActivityManagement({ state, actions, toaster }) {
             <div class="data-row" data-id="${item.id}">
               <div>
                 <div style="font-weight:600; margin-bottom:4px;">${item.company}</div>
-                <div style="color: var(--text-light); font-size: 12px;">申请 ${item.type} · 提交于 ${item.requestAt}</div>
+                <div style="color: var(--text-light); font-size: 12px;">Request ${item.type} · Submitted on ${item.requestAt}</div>
               </div>
               <div class="table-actions">
-                <button class="button button--ghost button--sm" data-action="reject">驳回</button>
-                <button class="button button--sm" data-action="approve">通过</button>
+                <button class="button button--ghost button--sm" data-action="reject">Reject</button>
+                <button class="button button--sm" data-action="approve">Approve</button>
               </div>
             </div>
           `
@@ -60,14 +60,14 @@ export function renderTeacherActivityManagement({ state, actions, toaster }) {
   const exportCard = document.createElement("section");
   exportCard.className = "card";
   exportCard.innerHTML = `
-    <h3 class="section-title">导出报名名单</h3>
+    <h3 class="section-title">Export signup list</h3>
     <div class="data-list">
       ${exportsList
         .map(
           (item) => `
             <div class="data-row">
               <span>${item.label}</span>
-              <button class="button button--ghost button--sm" data-file="${item.fileName}">导出</button>
+              <button class="button button--ghost button--sm" data-file="${item.fileName}">Export</button>
             </div>
           `
         )
@@ -79,15 +79,15 @@ export function renderTeacherActivityManagement({ state, actions, toaster }) {
   const qrCard = document.createElement("section");
   qrCard.className = "card";
   qrCard.innerHTML = `
-    <h3 class="section-title">签到二维码</h3>
+    <h3 class="section-title">Check-in QR code</h3>
     <div style="display:flex; align-items:center; gap:18px;">
       <div style="width:140px; height:140px; border-radius:16px; background:#f4f7ff; display:flex; align-items:center; justify-content:center; color: var(--text-light); font-size:13px;">${checkin.qrPlaceholder}</div>
       <div>
         <div style="font-weight:600; margin-bottom:8px;">${checkin.qrHint}</div>
-        <p style="color:#3a4f72; font-size:13px;">生成二维码供现场签到，支持下载与刷新。</p>
+        <p style="color:#3a4f72; font-size:13px;">Generate a QR code for onsite check-in; download or refresh as needed.</p>
         <div class="table-actions" style="margin-top:12px;">
-          <button class="button button--outline button--sm">下载二维码</button>
-          <button class="button button--ghost button--sm">刷新</button>
+          <button class="button button--outline button--sm">Download QR</button>
+          <button class="button button--ghost button--sm">Refresh</button>
         </div>
       </div>
     </div>
@@ -96,16 +96,16 @@ export function renderTeacherActivityManagement({ state, actions, toaster }) {
 
   function renderActivityCard() {
     activityCard.innerHTML = `
-      <h3 class="section-title">活动列表</h3>
+      <h3 class="section-title">Activity list</h3>
       <table class="table table--striped">
         <thead>
           <tr>
-            <th>活动名称</th>
-            <th>时间</th>
-            <th>地点</th>
-            <th>名额</th>
-            <th>报名数</th>
-            <th>状态</th>
+            <th>Activity</th>
+            <th>Date</th>
+            <th>Location</th>
+            <th>Capacity</th>
+            <th>Registrations</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody>
@@ -134,13 +134,13 @@ export function renderTeacherActivityManagement({ state, actions, toaster }) {
         event.preventDefault();
         const data = new FormData(form);
         actions.addTeacherActivity({
-          title: data.get("title") || "未命名活动",
-          date: data.get("date") || "待定",
-          location: data.get("location") || "待定",
+          title: data.get("title") || "Untitled Activity",
+          date: data.get("date") || "TBD",
+          location: data.get("location") || "TBD",
           capacity: Number(data.get("capacity")) || 0
         });
         isCreating = false;
-        toaster.show("活动草稿已创建", { type: "success" });
+        toaster.show("Activity draft created", { type: "success" });
         renderActivityCard();
       });
     }
@@ -151,29 +151,29 @@ export function renderTeacherActivityManagement({ state, actions, toaster }) {
       <form style="margin-top:24px; display:grid; gap:16px;">
         <div class="form-grid">
           <label style="display:flex; flex-direction:column; gap:6px; font-size:12px; color: var(--text-light);">
-            活动名称
+            Activity title
             <input class="input" name="title" required />
           </label>
           <label style="display:flex; flex-direction:column; gap:6px; font-size:12px; color: var(--text-light);">
-            活动时间
+            Date & time
             <input class="input" type="datetime-local" name="date" />
           </label>
           <label style="display:flex; flex-direction:column; gap:6px; font-size:12px; color: var(--text-light);">
-            活动地点
+            Location
             <input class="input" name="location" />
           </label>
           <label style="display:flex; flex-direction:column; gap:6px; font-size:12px; color: var(--text-light);">
-            名额限制
+            Capacity limit
             <input class="input" type="number" name="capacity" />
           </label>
         </div>
         <label style="display:flex; flex-direction:column; gap:6px; font-size:12px; color: var(--text-light);">
-          活动说明
-          <textarea class="input" name="desc" placeholder="输入活动亮点、参会要求等"></textarea>
+          Description
+          <textarea class="input" name="desc" placeholder="Share highlights, requirements, etc."></textarea>
         </label>
         <div class="form-actions" style="justify-content:flex-end;">
-          <button class="button button--ghost" type="button" data-role="cancel">取消</button>
-          <button class="button" type="submit">保存</button>
+          <button class="button button--ghost" type="button" data-role="cancel">Cancel</button>
+          <button class="button" type="submit">Save</button>
         </div>
       </form>
     `;
@@ -202,12 +202,12 @@ export function renderTeacherActivityManagement({ state, actions, toaster }) {
     if (!row) return;
     const id = row.dataset.id;
     if (action === "approve") {
-      actions.updateTeacherApproval(id, "已通过");
-      toaster.show("已通过报名申请", { type: "success" });
+      actions.updateTeacherApproval(id, "Approved");
+      toaster.show("Signup approved", { type: "success" });
     }
     if (action === "reject") {
-      actions.updateTeacherApproval(id, "已驳回");
-      toaster.show("已驳回报名申请", { type: "warn" });
+      actions.updateTeacherApproval(id, "Rejected");
+      toaster.show("Signup rejected", { type: "warn" });
     }
   });
 
@@ -216,7 +216,7 @@ export function renderTeacherActivityManagement({ state, actions, toaster }) {
     if (!(target instanceof HTMLElement)) return;
     const file = target.dataset.file;
     if (file) {
-      toaster.show(`已导出 ${file}`, { type: "success" });
+      toaster.show(`Exported ${file}`, { type: "success" });
     }
   });
 

@@ -52,3 +52,8 @@ assets/
 - 自动化测试：为状态动作与关键页面编写单元测试或端到端测试，确保交互稳定性。
 - 多语言与无障碍：结合 i18n、键盘导航提示提升可用性。
 
+## Role-based login & data mocks
+
+- Use the credentials listed on the new sign-in screen or reference `src/data/mockData.js` for usernames/passwords.
+- Authentication state lives entirely in `localStorage`; use the gear icon in DevTools (`localStorage.clear()`) or call `window.__careerStore.actions.logout()` to reset.
+- Sample SQL that mirrors the front-end dataset is available under `database/mysql_schema.sql`. Import it into a MySQL instance and replace the local-store reads with API calls when you are ready for a real backend.

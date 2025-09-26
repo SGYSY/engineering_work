@@ -9,12 +9,12 @@ export function renderHrCandidatePanel({ state, actions, toaster }) {
   header.className = "page-header";
   header.innerHTML = `
     <div>
-      <h2 class="section-title" style="margin-bottom:6px;">候选人处理面板</h2>
-      <p style="color: var(--text-light); font-size: 13px;">左侧列表筛选候选人，右侧预览简历并流转状态。</p>
+      <h2 class="section-title" style="margin-bottom:6px;">Candidate workflow panel</h2>
+      <p style="color: var(--text-light); font-size: 13px;">Filter candidates on the left, review resumes on the right, and update their stages.</p>
     </div>
     <div class="table-actions">
-      <button class="button button--outline">批量导出简历</button>
-      <button class="button">批量邀约</button>
+      <button class="button button--outline">Export resumes</button>
+      <button class="button">Bulk invite</button>
     </div>
   `;
   container.appendChild(header);
@@ -23,14 +23,14 @@ export function renderHrCandidatePanel({ state, actions, toaster }) {
   toolbar.className = "filter-bar";
   toolbar.innerHTML = `
     <label style="display:flex; flex-direction:column; gap:6px; font-size:12px; color: var(--text-light);">
-      状态筛选
+      Stage filter
       <select data-role="stage-filter">
-        <option value="">全部</option>
+        <option value="">All</option>
         ${stages.map((stage) => `<option value="${stage.id}">${stage.label}</option>`).join("")}
       </select>
     </label>
-    <input class="input" type="text" placeholder="搜索姓名或岗位" data-role="keyword" style="flex:1;" />
-    <button class="button button--ghost" data-action="reset">重置</button>
+    <input class="input" type="text" placeholder="Search name or role" data-role="keyword" style="flex:1;" />
+    <button class="button button--ghost" data-action="reset">Reset</button>
   `;
   container.appendChild(toolbar);
 
@@ -66,7 +66,7 @@ export function renderHrCandidatePanel({ state, actions, toaster }) {
     if (!list.length) {
       const empty = document.createElement("div");
       empty.className = "empty-state";
-      empty.textContent = "暂无候选人";
+      empty.textContent = "No candidates";
       aside.appendChild(empty);
       return;
     }
@@ -84,7 +84,7 @@ export function renderHrCandidatePanel({ state, actions, toaster }) {
           <span class="badge">${getStageLabel(candidate.stage, stages)}</span>
         </div>
         <div style="color:#3a4f72; font-size:12px; margin-top:8px; line-height:1.4;">${candidate.summary}</div>
-        <div style="color: var(--text-light); font-size:12px; margin-top:6px;">更新：${candidate.updatedAt}</div>
+        <div style="color: var(--text-light); font-size:12px; margin-top:6px;">Updated: ${candidate.updatedAt}</div>
       `;
       card.addEventListener("click", () => {
         activeId = candidate.id;
@@ -98,14 +98,14 @@ export function renderHrCandidatePanel({ state, actions, toaster }) {
   function renderResume() {
     const candidate = candidatesState.list.find((item) => item.id === activeId);
     if (!candidate) {
-      resumeArea.innerHTML = `<div class="empty-state">请选择候选人</div>`;
+      resumeArea.innerHTML = `<div class="empty-state">Select a candidate</div>`;
       return;
     }
     resumeArea.innerHTML = `
       <div class="page-header" style="margin-bottom:16px;">
         <div>
           <h3 class="section-title" style="margin-bottom:4px;">${candidate.name}</h3>
-          <div style="color: var(--text-light); font-size: 13px;">应聘岗位：${candidate.job}</div>
+          <div style="color: var(--text-light); font-size: 13px;">Applied position: ${candidate.job}</div>
         </div>
         <div class="table-actions">
           ${stages
@@ -117,11 +117,11 @@ export function renderHrCandidatePanel({ state, actions, toaster }) {
       </div>
       <div style="line-height:1.7; color:#3a4f72;">${candidate.resume}</div>
       <div style="margin-top:18px;">
-        <h4 style="font-weight:600; margin-bottom:10px;">批量邀约模板</h4>
+        <h4 style="font-weight:600; margin-bottom:10px;">Bulk invite templates</h4>
         <div class="data-list">
           ${candidatesState.templates
             .map(
-              (tpl) => `<div class="data-row"><span>${tpl.name}</span><button class="button button--ghost button--sm" data-template="${tpl.id}">发送</button></div>`
+              (tpl) => `<div class="data-row"><span>${tpl.name}</span><button class="button button--ghost button--sm" data-template="${tpl.id}">Send</button></div>`
             )
             .join("")}
         </div>
@@ -136,10 +136,10 @@ export function renderHrCandidatePanel({ state, actions, toaster }) {
     if (!(target instanceof HTMLElement)) return;
     if (target.dataset.stage) {
       actions.updateCandidateStage(activeId, target.dataset.stage);
-      toaster.show("候选人状态已更新", { type: "success" });
+      toaster.show("Candidate stage updated", { type: "success" });
     }
     if (target.dataset.template) {
-      toaster.show("已发送邀约模板", { type: "info" });
+      toaster.show("Invite template sent", { type: "info" });
     }
   }
 

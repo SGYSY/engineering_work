@@ -2,6 +2,16 @@ import { cloneInitialState, initialState } from "../data/mockData.js";
 
 const STORAGE_KEY = "career-platform-state";
 
+function createEmptySession() {
+  return {
+    authenticated: false,
+    userId: null,
+    role: null,
+    displayName: null,
+    lastLoginAt: null
+  };
+}
+
 let state = hydrateState();
 const listeners = new Set();
 
@@ -81,12 +91,12 @@ function ensureApplication(job, applications) {
     jobTitle: job.title,
     company: job.company,
     submitDate: now.toISOString().slice(0, 10),
-    status: "投递成功",
+    status: "Submitted",
     progress: [
       {
         time: now.toISOString().replace("T", " ").slice(0, 16),
-        label: "投递成功",
-        remark: "系统已收到投递"
+        label: "Submitted",
+        remark: "Application received"
       }
     ],
     messages: [],
@@ -106,6 +116,32 @@ function addNotification(draft, payload) {
 }
 
 export const actions = {
+  login({ username, password }) {
+    const nextUsername = (username || "").trim().toLowerCase();
+    const current = getState();
+    const account = current.accounts.find(
+      (item) => item.username.toLowerCase() === nextUsername
+    );
+    if (!account || account.password !== password) {
+      throw new Error("Invalid credentials");
+    }
+    setState((draft) => {
+      draft.session = {
+        authenticated: true,
+        userId: account.id,
+        role: account.role,
+        displayName: account.displayName,
+        lastLoginAt: new Date().toISOString()
+      };
+    });
+  },
+
+  logout() {
+    setState((draft) => {
+      draft.session = createEmptySession();
+    });
+  },
+
   reset() {
     setState(() => cloneInitialState());
   },
@@ -124,20 +160,20 @@ export const actions = {
       const job = draft.student.jobs.find((item) => item.id === jobId);
       if (!job) return;
       const record = ensureApplication(job, draft.student.applications);
-      record.status = "投递成功";
+      record.status = "Submitted";
       record.progress.unshift({
         time: new Date().toISOString().replace("T", " ").slice(0, 16),
-        label: "重新投递",
-        remark: "已更新投递记录"
+        label: "Reapplied",
+        remark: "Application record updated"
       });
       addNotification(draft, {
-        category: "投递状态",
-        title: `${job.company} - ${job.title} 投递成功`
+        category: "Application Status",
+        title: `${job.company} - ${job.title} submitted successfully`
       });
     });
   },
 
-  updateApplicationStatus(applicationId, status, remark = "状态更新") {
+  updateApplicationStatus(applicationId, status, remark = "Status updated") {
     setState((draft) => {
       const application = draft.student.applications.find((item) => item.id === applicationId);
       if (!application) return;
@@ -156,7 +192,7 @@ export const actions = {
       const application = draft.student.applications.find((item) => item.id === applicationId);
       if (!application) return;
       application.messages.unshift({
-        sender: "我",
+        sender: "Me",
         content: message
       });
     });
@@ -169,7 +205,7 @@ export const actions = {
       if (!application) return;
       application.attachments.push({
         name: fileName,
-        size: "自动生成"
+        size: "Auto generated"
       });
     });
   },
@@ -227,11 +263,11 @@ export const actions = {
     setState((draft) => {
       const act = draft.student.activities.find((item) => item.id === activityId);
       if (!act) return;
-      const nextStatus = act.status === "已报名" ? "可报名" : "已报名";
+      const nextStatus = act.status === "Registered" ? "Open" : "Registered";
       act.status = nextStatus;
       addNotification(draft, {
-        category: "活动提醒",
-        title: `${act.title} ${nextStatus === "已报名" ? "报名成功" : "已取消"}`
+        category: "Activity Reminder",
+        title: `${act.title} ${nextStatus === "Registered" ? "registration confirmed" : "registration cancelled"}`
       });
     });
   },
@@ -252,7 +288,7 @@ export const actions = {
         exposure: 0,
         views: 0,
         applicants: 0,
-        status: "待上线",
+        status: "Pending",
         publishDate: new Date().toISOString().slice(0, 10),
         ...payload
       });
@@ -267,15 +303,15 @@ export const actions = {
     });
   },
 
-  duplicateJob(jobId, suffix = "副本") {
+  duplicateJob(jobId, suffix = "Copy") {
     setState((draft) => {
       const job = draft.hr.jobs.find((item) => item.id === jobId);
       if (!job) return;
       draft.hr.jobs.push({
         ...job,
         id: `${job.id}-${Date.now()}`,
-        title: `${job.title}（${suffix}）`,
-        status: "待上线",
+        title: `${job.title} (${suffix})`,
+        status: "Pending",
         publishDate: new Date().toISOString().slice(0, 10)
       });
     });
@@ -300,7 +336,7 @@ export const actions = {
     setState((draft) => {
       draft.teacher.activities.unshift({
         id: `teach-act-${Date.now()}`,
-        status: "审核中",
+        status: "Under Review",
         registered: 0,
         ...activity
       });
@@ -348,7 +384,7 @@ export const actions = {
     setState((draft) => {
       const user = draft.admin.users.find((item) => item.id === userId);
       if (user) {
-        user.status = user.status === "启用" ? "停用" : "启用";
+        user.status = user.status === "Enabled" ? "Disabled" : "Enabled";
       }
     });
   },
@@ -359,6 +395,20 @@ export const actions = {
         id: `log-${Date.now()}`,
         time: new Date().toISOString().replace("T", " ").slice(0, 16),
         ...entry
+      });
+    });
+  },
+
+  addAdminRole(role) {
+    setState((draft) => {
+      const exists = draft.admin.roles.some(
+        (item) => item.name.trim().toLowerCase() === (role.name || "").trim().toLowerCase()
+      );
+      if (exists) return;
+      draft.admin.roles.push({
+        id: role.id || `role-${Date.now()}`,
+        name: role.name || "New Role",
+        desc: role.desc || "Custom permissions"
       });
     });
   }

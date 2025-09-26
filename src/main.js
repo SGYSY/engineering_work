@@ -1,4 +1,5 @@
 import { roles } from "./data/mockData.js";
+import { t } from "./utils/i18n.js";
 import { getState, actions, subscribe } from "./state/store.js";
 import { renderStudentJobList } from "./views/student/jobList.js";
 import { renderStudentJobDetail } from "./views/student/jobDetail.js";
@@ -17,10 +18,14 @@ import { renderAdminOperationLog } from "./views/admin/operationLog.js";
 import { renderAdminTeacherPanel } from "./views/admin/teacherPanel.js";
 import { renderAdminHrPanel } from "./views/admin/hrPanel.js";
 import { mountToaster } from "./components/toast.js";
+import { renderLogin } from "./views/auth/login.js";
 
 const roleNav = document.getElementById("role-nav");
 const sectionNav = document.getElementById("section-nav");
 const appRoot = document.getElementById("app-root");
+const topbarUser = document.querySelector(".topbar__user");
+const userNameEl = topbarUser?.querySelector(".user-name");
+const logoutButton = document.getElementById("logout-btn");
 const toaster = mountToaster();
 
 const registry = {
@@ -43,17 +48,21 @@ const registry = {
 };
 
 let lastRouteKey = "";
+let activeRoleId = null;
 
-function buildRoleNav() {
+function buildRoleNav(roleId) {
+  if (!roleNav) return;
   roleNav.innerHTML = "";
-  roles.forEach((role) => {
-    const link = document.createElement("a");
-    link.href = `#${role.id}/${role.routes[0].id}`;
-    link.textContent = role.label;
-    link.className = "nav-item";
-    link.dataset.role = role.id;
-    roleNav.appendChild(link);
-  });
+  if (!roleId) {
+    roleNav.style.display = "none";
+    return;
+  }
+  const role = roles.find((item) => item.id === roleId);
+  const item = document.createElement("span");
+  item.className = "nav-item active";
+  item.textContent = t(role?.label || roleId);
+  roleNav.appendChild(item);
+  roleNav.style.display = "flex";
 }
 
 function buildSectionNav(roleId, activeViewId) {
@@ -63,7 +72,7 @@ function buildSectionNav(roleId, activeViewId) {
   role.routes.forEach((route) => {
     const link = document.createElement("a");
     link.href = `#${roleId}/${route.id}`;
-    link.textContent = route.label;
+  link.textContent = t(route.label);
     link.className = "nav-item";
     link.dataset.view = route.id;
     if (route.id === activeViewId) {
@@ -73,45 +82,38 @@ function buildSectionNav(roleId, activeViewId) {
   });
 }
 
-function setActiveRole(roleId) {
-  const links = roleNav.querySelectorAll(".nav-item");
-  links.forEach((link) => {
-    if (link.dataset.role === roleId) {
-      link.classList.add("active");
-    } else {
-      link.classList.remove("active");
-    }
-  });
-}
-
-function parseRoute(hash) {
+function parseRoute(hash, sessionRoleId) {
   const path = hash.replace("#", "").trim();
   const segments = path ? path.split("/") : [];
-  const roleId = segments[0] || roles[0].id;
+  let roleId = segments[0] || sessionRoleId || roles[0].id;
   const role = roles.find((item) => item.id === roleId) || roles[0];
+  if (sessionRoleId && roleId !== sessionRoleId) {
+    roleId = sessionRoleId;
+  }
   const defaultView = role.routes[0].id;
   const viewId = segments[1] || defaultView;
   const param = segments[2] || null;
   return { roleId: role.id, viewId, param };
 }
 
-function normalizeRoute({ roleId, viewId, param }) {
-  const role = roles.find((item) => item.id === roleId) || roles[0];
+function normalizeRoute({ roleId, viewId, param }, sessionRoleId) {
+  const targetRoleId = sessionRoleId || roleId;
+  const role = roles.find((item) => item.id === targetRoleId) || roles[0];
   const routeExists = role.routes.some((route) => route.id === viewId);
   const safeView = routeExists ? viewId : role.routes[0].id;
   return { roleId: role.id, viewId: safeView, param };
 }
 
-function renderRoute() {
-  const parsed = parseRoute(window.location.hash);
-  const { roleId, viewId, param } = normalizeRoute(parsed);
+function renderRoute(session) {
+  if (!session?.role) return;
+  const parsed = parseRoute(window.location.hash, session.role);
+  const { roleId, viewId, param } = normalizeRoute(parsed, session.role);
   const hashPath = param ? `#${roleId}/${viewId}/${param}` : `#${roleId}/${viewId}`;
   if (window.location.hash !== hashPath) {
     window.location.hash = hashPath;
     return;
   }
 
-  setActiveRole(roleId);
   buildSectionNav(roleId, viewId);
 
   const key = `${roleId}/${viewId}`;
@@ -130,17 +132,85 @@ function renderRoute() {
 }
 
 function navigate(roleId, viewId, param) {
-  const target = param ? `#${roleId}/${viewId}/${param}` : `#${roleId}/${viewId}`;
+  const targetRole = roleId || activeRoleId;
+  if (!targetRole) return;
+  const target = param ? `#${targetRole}/${viewId}/${param}` : `#${targetRole}/${viewId}`;
   window.location.hash = target;
 }
 
-buildRoleNav();
-window.addEventListener("hashchange", renderRoute);
+function renderApp() {
+  const state = getState();
+  const session = state.session;
+  const authenticated = Boolean(session?.authenticated && session.role);
+
+  if (!authenticated) {
+    activeRoleId = null;
+    if (roleNav) {
+      roleNav.innerHTML = "";
+      roleNav.style.display = "none";
+    }
+    sectionNav.innerHTML = "";
+    sectionNav.style.display = "none";
+    if (logoutButton) {
+      logoutButton.style.display = "none";
+    }
+    if (userNameEl) {
+      userNameEl.textContent = "Guest";
+    }
+    appRoot.innerHTML = "";
+    const loginView = renderLogin({ state, actions, toaster });
+    appRoot.appendChild(loginView);
+    return;
+  }
+
+  activeRoleId = session.role;
+  buildRoleNav(session.role);
+  sectionNav.style.display = "flex";
+  if (logoutButton) {
+    logoutButton.style.display = "inline-flex";
+  }
+  if (userNameEl) {
+    userNameEl.textContent = session.displayName || t(session.role);
+  }
+
+  const role = roles.find((item) => item.id === session.role) || roles[0];
+  const defaultView = role.routes[0]?.id;
+  if (!window.location.hash || !window.location.hash.startsWith(`#${session.role}/`)) {
+    window.location.hash = `#${session.role}/${defaultView}`;
+  }
+  renderRoute(session);
+}
+
+window.addEventListener("hashchange", () => {
+  const state = getState();
+  if (!state.session?.authenticated) {
+    return;
+  }
+  renderRoute(state.session);
+});
+
+if (logoutButton) {
+  logoutButton.addEventListener("click", () => {
+    actions.logout();
+    window.location.hash = "";
+    toaster.show("Signed out", { type: "info" });
+  });
+}
+
 subscribe(() => {
-  const { roleId, viewId } = normalizeRoute(parseRoute(window.location.hash));
+  const state = getState();
+  if (!state.session?.authenticated) {
+    renderApp();
+    return;
+  }
+  const parsed = parseRoute(window.location.hash, state.session.role);
+  const { roleId, viewId } = normalizeRoute(parsed, state.session.role);
   const key = `${roleId}/${viewId}`;
   if (key === lastRouteKey) {
-    renderRoute();
+    renderRoute(state.session);
+  } else {
+    renderApp();
   }
 });
-renderRoute();
+
+renderApp();

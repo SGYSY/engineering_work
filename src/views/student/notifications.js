@@ -6,12 +6,12 @@ export function renderStudentNotifications({ state, actions, toaster }) {
   header.className = "page-header";
   header.innerHTML = `
     <div>
-      <h2 class="section-title" style="margin-bottom:6px;">通知中心</h2>
-      <p style="color: var(--text-light); font-size: 13px;">查看系统消息、投递状态与活动提醒，支持快速已读与筛选。</p>
+      <h2 class="section-title" style="margin-bottom:6px;">Notification center</h2>
+      <p style="color: var(--text-light); font-size: 13px;">Review system messages, application updates, and activity alerts with quick filtering.</p>
     </div>
     <div class="table-actions">
-      <button class="button button--outline" data-action="mark-read">全部标记已读</button>
-      <button class="button" data-action="subscribe">通知订阅</button>
+      <button class="button button--outline" data-action="mark-read">Mark all read</button>
+      <button class="button" data-action="subscribe">Subscribe</button>
     </div>
   `;
   container.appendChild(header);
@@ -20,7 +20,7 @@ export function renderStudentNotifications({ state, actions, toaster }) {
   controls.className = "filter-bar";
 
   const categorySelect = document.createElement("select");
-  const categories = ["全部", ...new Set(notifications.map((item) => item.category))];
+  const categories = ["All", ...new Set(notifications.map((item) => item.category))];
   categorySelect.innerHTML = categories
     .map((category, index) => `<option value="${index === 0 ? "" : category}">${category}</option>`)
     .join("");
@@ -32,7 +32,7 @@ export function renderStudentNotifications({ state, actions, toaster }) {
   unreadToggle.style.gap = "8px";
   unreadToggle.style.fontSize = "12px";
   unreadToggle.style.color = "var(--text-light)";
-  unreadToggle.innerHTML = `<input type="checkbox" /> 仅显示未读`;
+  unreadToggle.innerHTML = `<input type="checkbox" /> Unread only`;
   controls.appendChild(unreadToggle);
 
   container.appendChild(controls);
@@ -55,7 +55,7 @@ export function renderStudentNotifications({ state, actions, toaster }) {
     if (!filtered.length) {
       const empty = document.createElement("div");
       empty.className = "empty-state";
-      empty.textContent = "暂无通知";
+      empty.textContent = "No notifications";
       list.appendChild(empty);
       return;
     }
@@ -71,9 +71,9 @@ export function renderStudentNotifications({ state, actions, toaster }) {
         </div>
         <div class="table-actions">
           <button class="button button--ghost button--sm" data-action="${item.read ? "mark-unread" : "mark-read"}" data-id="${item.id}">${
-        item.read ? "标为未读" : "标为已读"
+        item.read ? "Mark unread" : "Mark read"
       }</button>
-          <button class="button button--outline button--sm" data-action="detail" data-id="${item.id}">查看详情</button>
+          <button class="button button--outline button--sm" data-action="detail" data-id="${item.id}">View details</button>
         </div>
       `;
       list.appendChild(row);
@@ -89,14 +89,14 @@ export function renderStudentNotifications({ state, actions, toaster }) {
 
     if (action === "mark-read") {
       actions.markNotification(id, true);
-      toaster.show("已标记为已读", { type: "success" });
+      toaster.show("Marked as read", { type: "success" });
     }
     if (action === "mark-unread") {
       actions.markNotification(id, false);
-      toaster.show("已标记为未读", { type: "info" });
+      toaster.show("Marked as unread", { type: "info" });
     }
     if (action === "detail") {
-      toaster.show("通知详情已弹出（模拟）", { type: "info" });
+      toaster.show("Notification detail opened (mock)", { type: "info" });
     }
   });
 
@@ -107,10 +107,10 @@ export function renderStudentNotifications({ state, actions, toaster }) {
     if (!(target instanceof HTMLElement)) return;
     if (target.dataset.action === "mark-read") {
       actions.markAllNotifications(true);
-      toaster.show("全部通知已标记为已读", { type: "success" });
+      toaster.show("All notifications marked as read", { type: "success" });
     }
     if (target.dataset.action === "subscribe") {
-      toaster.show("已订阅最新投递与活动通知", { type: "success" });
+      toaster.show("Subscribed to latest updates", { type: "success" });
     }
   });
 

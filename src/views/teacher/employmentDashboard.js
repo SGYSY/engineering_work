@@ -11,19 +11,19 @@ export function renderTeacherEmploymentDashboard({ state, toaster }) {
   header.className = "page-header";
   header.innerHTML = `
     <div>
-      <h2 class="section-title" style="margin-bottom:6px;">学生就业看板</h2>
-      <p style="color: var(--text-light); font-size: 13px;">按届别、学院、专业筛选就业流向与岗位类别分布。</p>
+      <h2 class="section-title" style="margin-bottom:6px;">Student Employment Dashboard</h2>
+      <p style="color: var(--text-light); font-size: 13px;">Filter career outcomes by class year, college, and major.</p>
     </div>
-    <button class="button button--outline" data-action="export">导出数据</button>
+    <button class="button button--outline" data-action="export">Export data</button>
   `;
   container.appendChild(header);
 
   const filters = document.createElement("div");
   filters.className = "filter-bar";
   filters.innerHTML = `
-    ${renderSelect("届别", "year", dashboard.filters.year)}
-    ${renderSelect("学院", "college", dashboard.filters.college)}
-    ${renderSelect("专业", "major", dashboard.filters.major)}
+    ${renderSelect("Class year", "year", dashboard.filters.year)}
+    ${renderSelect("College", "college", dashboard.filters.college)}
+    ${renderSelect("Major", "major", dashboard.filters.major)}
   `;
   container.appendChild(filters);
 
@@ -45,21 +45,21 @@ export function renderTeacherEmploymentDashboard({ state, toaster }) {
 
   function renderCards() {
     industryCard.innerHTML = `
-      <h3 class="section-title">行业分布</h3>
+      <h3 class="section-title">Industry distribution</h3>
       <div class="data-list">
         ${dashboard.industryDistribution.map((item) => renderBarRow(item)).join("")}
       </div>
     `;
 
     categoryCard.innerHTML = `
-      <h3 class="section-title">岗位类别分布</h3>
+      <h3 class="section-title">Role category distribution</h3>
       <div class="data-list">
         ${dashboard.jobCategory.map((item) => renderBarRow(item, "#6f8cfb")).join("")}
       </div>
     `;
 
     regionCard.innerHTML = `
-      <h3 class="section-title">地区流向</h3>
+      <h3 class="section-title">Regional flow</h3>
       <div class="data-list">
         ${dashboard.regionFlow.map((item) => renderBarRow(item, "#34caa5")).join("")}
       </div>
@@ -77,12 +77,12 @@ export function renderTeacherEmploymentDashboard({ state, toaster }) {
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
     if (target.dataset.action === "export") {
-      toaster?.show?.("已导出当前筛选的数据报表", { type: "success" });
+      toaster?.show?.("Exported report for current filters", { type: "success" });
     }
   });
 
   function updateSubtitle() {
-    header.querySelector("p").textContent = `当前筛选：${stateFilter.year} 届 · ${stateFilter.college} · ${stateFilter.major}`;
+    header.querySelector("p").textContent = `Current filters: Class of ${stateFilter.year} · ${stateFilter.college} · ${stateFilter.major}`;
   }
 
   renderCards();

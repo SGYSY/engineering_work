@@ -1,3 +1,5 @@
+import { t } from "../../utils/i18n.js";
+
 export function renderStudentActivities({ state, actions, toaster }) {
   const container = document.createElement("div");
   const activities = state.student.activities;
@@ -6,12 +8,12 @@ export function renderStudentActivities({ state, actions, toaster }) {
   header.className = "page-header";
   header.innerHTML = `
     <div>
-      <h2 class="section-title" style="margin-bottom:6px;">活动列表</h2>
-      <p style="color: var(--text-light); font-size: 13px;">关注宣讲与双选会日程，在线报名并查看入场指引。</p>
+      <h2 class="section-title" style="margin-bottom:6px;">${t("活动列表")}</h2>
+      <p style="color: var(--text-light); font-size: 13px;">${t("关注宣讲与双选会日程，在线报名并查看入场指引。")}</p>
     </div>
     <div class="table-actions">
-      <button class="button button--outline" data-action="my">我的报名</button>
-      <button class="button" data-action="download">下载日程表</button>
+      <button class="button button--outline" data-action="my">${t("我的报名")}</button>
+      <button class="button" data-action="download">${t("下载日程表")}</button>
     </div>
   `;
   container.appendChild(header);
@@ -20,31 +22,31 @@ export function renderStudentActivities({ state, actions, toaster }) {
   filterBar.className = "filter-bar";
 
   const typeSelect = document.createElement("select");
-  typeSelect.innerHTML = `<option value="">全部类型</option>` +
+  typeSelect.innerHTML = `<option value="">${t("全部类型")}</option>` +
     [...new Set(activities.map((item) => item.type))]
       .map((type) => `<option value="${type}">${type}</option>`)
       .join("");
   filterBar.appendChild(typeSelect);
 
   const searchInput = document.createElement("input");
-  searchInput.placeholder = "搜索活动或企业";
+  searchInput.placeholder = t("搜索活动或企业");
   searchInput.className = "input";
   searchInput.style.flex = "1";
   filterBar.appendChild(searchInput);
 
   const guideInput = document.createElement("input");
-  guideInput.placeholder = "更新入场指引（选中活动有效）";
+  guideInput.placeholder = t("更新入场指引（选中活动有效）");
   guideInput.className = "input";
   filterBar.appendChild(guideInput);
 
   const updateGuideButton = document.createElement("button");
   updateGuideButton.className = "button button--ghost";
-  updateGuideButton.textContent = "更新指引";
+  updateGuideButton.textContent = t("更新指引");
   filterBar.appendChild(updateGuideButton);
 
   const resetButton = document.createElement("button");
   resetButton.className = "button button--ghost";
-  resetButton.textContent = "重置";
+  resetButton.textContent = t("重置");
   filterBar.appendChild(resetButton);
 
   container.appendChild(filterBar);
@@ -67,7 +69,7 @@ export function renderStudentActivities({ state, actions, toaster }) {
     if (!results.length) {
       const empty = document.createElement("div");
       empty.className = "empty-state";
-      empty.textContent = "暂无相关活动";
+      empty.textContent = t("暂无相关活动");
       list.appendChild(empty);
       return;
     }
@@ -89,12 +91,14 @@ export function renderStudentActivities({ state, actions, toaster }) {
               <span>${activity.location}</span>
             </div>
           </div>
-          <span class="badge ${activity.status === "已报名" ? "badge--success" : ""}">${activity.status}</span>
+          <span class="badge ${activity.status === "Registered" ? "badge--success" : ""}">${t(activity.status)}</span>
         </div>
-        <div style="color:#3a4f72;">入场指引：${activity.guide}</div>
+        <div style="color:#3a4f72;">${t("入场指引")}: ${activity.guide}</div>
         <div class="table-actions" style="justify-content:flex-end;">
-          <button class="button button--ghost" data-action="detail" data-id="${activity.id}">详情</button>
-          <button class="button" data-action="toggle" data-id="${activity.id}">${activity.status === "可报名" ? "立即报名" : "取消报名"}</button>
+          <button class="button button--ghost" data-action="detail" data-id="${activity.id}">${t("详情")}</button>
+          <button class="button" data-action="toggle" data-id="${activity.id}">${
+        t(activity.status === "Open" ? "Register Now" : "Cancel Registration")
+      }</button>
         </div>
       `;
       list.appendChild(card);
@@ -111,11 +115,11 @@ export function renderStudentActivities({ state, actions, toaster }) {
     activeId = id;
 
     if (action === "detail") {
-      toaster.show("已记录该活动，可在页面右上角查看报名清单", { type: "info" });
+      toaster.show(t("已记录该活动，可在页面右上角查看报名清单"), { type: "info" });
     }
     if (action === "toggle") {
       actions.toggleActivityRegistration(id);
-      toaster.show("活动状态已更新", { type: "success" });
+      toaster.show(t("活动状态已更新"), { type: "success" });
     }
   });
 
@@ -129,15 +133,15 @@ export function renderStudentActivities({ state, actions, toaster }) {
   });
   updateGuideButton.addEventListener("click", () => {
     if (!activeId) {
-      toaster.show("请先选择活动卡片", { type: "warn" });
+      toaster.show(t("请先选择活动卡片"), { type: "warn" });
       return;
     }
     if (!guideInput.value.trim()) {
-      toaster.show("请输入新的入场指引", { type: "warn" });
+      toaster.show(t("请输入新的入场指引"), { type: "warn" });
       return;
     }
     actions.addStudentActivityFeedback(activeId, guideInput.value.trim());
-    toaster.show("入场指引已更新", { type: "success" });
+    toaster.show(t("入场指引已更新"), { type: "success" });
     guideInput.value = "";
   });
 
@@ -147,9 +151,9 @@ export function renderStudentActivities({ state, actions, toaster }) {
     if (target.dataset.action === "my") {
       typeSelect.value = "";
       searchInput.value = "";
-      const registered = activities.filter((item) => item.status === "已报名");
+      const registered = activities.filter((item) => item.status === "Registered");
       if (!registered.length) {
-        toaster.show("你还没有报名任何活动", { type: "info" });
+        toaster.show(t("你还没有报名任何活动"), { type: "info" });
         return;
       }
       list.innerHTML = "";
@@ -161,7 +165,7 @@ export function renderStudentActivities({ state, actions, toaster }) {
       });
     }
     if (target.dataset.action === "download") {
-      toaster.show("日程表已发送至邮箱", { type: "success" });
+      toaster.show(t("日程表已发送至邮箱"), { type: "success" });
     }
   });
 

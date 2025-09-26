@@ -5,8 +5,8 @@ export function renderDashboard({ state, navigate, toaster }) {
 
   const userProfile = {
     name: "root",
-    role: "平台管理员",
-    status: "在线",
+    role: "Platform Admin",
+    status: "Online",
     lastLogin: new Date().toISOString().replace("T", " ").slice(0, 16)
   };
 
@@ -22,15 +22,18 @@ function buildProfileCard(userProfile, state, navigate) {
   card.className = "card";
 
   const stats = [
-    { label: "学生投递", value: state.student.applications.length },
-    { label: "活跃职位", value: state.hr.jobs.filter((job) => job.status === "已上线").length },
-    { label: "待审企业", value: state.teacher.enterpriseAudit.filter((item) => item.status === "待审核").length }
+    { label: "Student Applications", value: state.student.applications.length },
+    { label: "Active Jobs", value: state.hr.jobs.filter((job) => job.status === "Published").length },
+    {
+      label: "Pending Enterprises",
+      value: state.teacher.enterpriseAudit.filter((item) => item.status === "Pending").length
+    }
   ];
 
   card.innerHTML = `
     <div class="info-card">
       <div class="avatar avatar--lg">
-        <img src="assets/avatar.svg" alt="用户头像" class="avatar" style="width: 64px; height: 64px;" />
+        <img src="assets/avatar.svg" alt="User Avatar" class="avatar" style="width: 64px; height: 64px;" />
       </div>
       <div>
         <div style="font-size: 18px; font-weight: 600;">${userProfile.name}</div>
@@ -38,11 +41,11 @@ function buildProfileCard(userProfile, state, navigate) {
           <span class="badge">${userProfile.role}</span>
           <span class="pill">${userProfile.status}</span>
         </div>
-        <div style="margin-top: 8px; color: var(--text-light); font-size: 13px;">上次登录时间：${userProfile.lastLogin}</div>
+        <div style="margin-top: 8px; color: var(--text-light); font-size: 13px;">Last login: ${userProfile.lastLogin}</div>
       </div>
       <div class="info-card__actions">
-        <button class="button" onclick="window.location.hash='#student/job-list'">进入学生端</button>
-        <button class="button button--outline" onclick="window.location.hash='#hr/job-management'">HR 面板</button>
+        <button class="button" onclick="window.location.hash='#student/job-list'">Open Student Portal</button>
+        <button class="button button--outline" onclick="window.location.hash='#hr/job-management'">HR Panel</button>
       </div>
     </div>
     <div class="status-tiles">
@@ -71,8 +74,8 @@ function buildMessageArea(state) {
   messageCard.className = "card";
   messageCard.innerHTML = `
     <div class="section-title" style="display:flex; justify-content: space-between; align-items:center;">
-      <span>最新投递动态</span>
-      <a class="nav-item" href="#student/applications">查看更多</a>
+      <span>Latest application updates</span>
+      <a class="nav-item" href="#student/applications">View more</a>
     </div>
     <div class="timeline">
       ${state.student.applications
@@ -95,7 +98,7 @@ function buildMessageArea(state) {
   const noticeCard = document.createElement("div");
   noticeCard.className = "card";
   noticeCard.innerHTML = `
-    <div class="section-title">公告信息</div>
+    <div class="section-title">Announcements</div>
     <div class="timeline">
       ${state.student.notifications
         .slice(0, 3)
@@ -126,8 +129,8 @@ function buildNetworkSection(state, navigate, toaster) {
   const companies = state.teacher.enterpriseAudit.slice(0, 6);
   card.innerHTML = `
     <div class="section-title" style="display:flex; justify-content: space-between; align-items:center;">
-      <span>企业对接</span>
-      <a href="#teacher/enterprise-review" class="nav-item" style="padding:0;">更多</a>
+      <span>Enterprise connections</span>
+      <a href="#teacher/enterprise-review" class="nav-item" style="padding:0;">More</a>
     </div>
     <div class="grid grid-3">
       ${companies
@@ -138,14 +141,14 @@ function buildNetworkSection(state, navigate, toaster) {
               <div style="flex:1;">
                 <div style="font-weight:600; margin-bottom:6px;">${enterprise.company}</div>
                 <div class="chips">
-                  <span class="chip">状态：${enterprise.status}</span>
-                  <span class="chip">${enterprise.blacklist ? "黑名单" : "白名单"}</span>
+                  <span class="chip">Status: ${enterprise.status}</span>
+                  <span class="chip">${enterprise.blacklist ? "Blacklist" : "Whitelist"}</span>
                 </div>
-                <div style="margin-top:8px; font-size:12px; color: var(--text-light);">材料数量：${enterprise.materials.length}</div>
+                <div style="margin-top:8px; font-size:12px; color: var(--text-light);">Materials: ${enterprise.materials.length}</div>
               </div>
               <div class="info-card__actions" style="flex-direction:column; gap:6px;">
-                <button class="button" data-id="${enterprise.id}" data-action="to-teacher">审核</button>
-                <button class="button button--outline" data-id="${enterprise.id}" data-action="toggle">切换名单</button>
+                <button class="button" data-id="${enterprise.id}" data-action="to-teacher">Review</button>
+                <button class="button button--outline" data-id="${enterprise.id}" data-action="toggle">Toggle list</button>
               </div>
             </div>
           `
@@ -165,7 +168,7 @@ function buildNetworkSection(state, navigate, toaster) {
       navigate("teacher", "enterprise-review", id);
     }
     if (action === "toggle") {
-      toaster?.show?.("请在教师端企业考核中操作", { type: "info" });
+      toaster?.show?.("Manage this in the teacher enterprise review panel", { type: "info" });
       navigate("teacher", "enterprise-review", id);
     }
   });

@@ -1,3 +1,4 @@
+import { t } from "../../utils/i18n.js";
 export function renderStudentApplications({ state, actions, toaster }) {
   const container = document.createElement("div");
   const applications = state.student.applications;
@@ -6,12 +7,12 @@ export function renderStudentApplications({ state, actions, toaster }) {
   header.className = "page-header";
   header.innerHTML = `
     <div>
-      <h2 class="section-title" style="margin-bottom:6px;">我的投递</h2>
-      <p style="color: var(--text-light); font-size: 13px;">查看投递历史与状态时间线，可补充沟通消息与附件。</p>
+      <h2 class="section-title" style="margin-bottom:6px;">${t("我的投递")}</h2>
+      <p style="color: var(--text-light); font-size: 13px;">${t("查看投递历史与状态时间线，可补充沟通消息与附件。")}</p>
     </div>
     <div class="table-actions">
-      <button class="button button--outline" data-action="export">导出投递记录</button>
-      <button class="button" data-action="refresh">同步最新状态</button>
+      <button class="button button--outline" data-action="export">${t("导出投递记录")}</button>
+      <button class="button" data-action="refresh">${t("同步最新状态")}</button>
     </div>
   `;
   container.appendChild(header);
@@ -23,14 +24,14 @@ export function renderStudentApplications({ state, actions, toaster }) {
   const listCard = document.createElement("section");
   listCard.className = "card";
   listCard.innerHTML = `
-    <h3 class="section-title">投递列表</h3>
+    <h3 class="section-title">${t("投递列表")}</h3>
     <table class="table table--striped">
       <thead>
         <tr>
-          <th>岗位名称</th>
-          <th>企业</th>
-          <th>投递时间</th>
-          <th>当前状态</th>
+          <th>${t("岗位名称")}</th>
+          <th>${t("企业")}</th>
+          <th>${t("投递时间")}</th>
+          <th>${t("当前状态")}</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -54,7 +55,7 @@ export function renderStudentApplications({ state, actions, toaster }) {
         <td>${item.jobTitle}</td>
         <td>${item.company}</td>
         <td>${item.submitDate}</td>
-        <td><span class="badge ${item.status.includes("邀约") ? "badge--success" : ""}">${item.status}</span></td>
+        <td><span class="badge ${item.status.toLowerCase().includes("invite") ? "badge--success" : ""}">${t(item.status)}</span></td>
       `;
       tr.style.cursor = "pointer";
       if (item.id === activeId) {
@@ -70,7 +71,7 @@ export function renderStudentApplications({ state, actions, toaster }) {
 
     if (!applications.length) {
       const empty = document.createElement("tr");
-      empty.innerHTML = `<td colspan="4" style="text-align:center; padding:24px; color: var(--text-light);">暂无投递记录</td>`;
+            empty.innerHTML = `<td colspan="4" style="text-align:center; padding:24px; color: var(--text-light);">${t("暂无投递记录")}</td>`;
       tbody.appendChild(empty);
     }
   }
@@ -78,7 +79,7 @@ export function renderStudentApplications({ state, actions, toaster }) {
   function renderDetail() {
     const current = applications.find((item) => item.id === activeId);
     if (!current) {
-      detailCard.innerHTML = `<div class="empty-state">请选择投递记录</div>`;
+      detailCard.innerHTML = `<div class="empty-state">${t("请选择投递记录")}</div>`;
       return;
     }
 
@@ -86,12 +87,12 @@ export function renderStudentApplications({ state, actions, toaster }) {
       <div class="page-header" style="margin-bottom:16px;">
         <div>
           <h3 class="section-title" style="margin-bottom:4px;">${current.jobTitle}</h3>
-          <div style="color: var(--text-light); font-size: 13px;">${current.company} · 投递于 ${current.submitDate}</div>
+          <div style="color: var(--text-light); font-size: 13px;">${current.company} · ${t("投递于")} ${current.submitDate}</div>
         </div>
-        <span class="badge badge--success">${current.status}</span>
+        <span class="badge badge--success">${t(current.status)}</span>
       </div>
       <div>
-        <h4 style="font-size:15px; font-weight:600; margin-bottom:10px;">状态时间线</h4>
+        <h4 style="font-size:15px; font-weight:600; margin-bottom:10px;">${t("状态时间线")}</h4>
         <div class="timeline">
           ${current.progress
             .map(
@@ -99,8 +100,8 @@ export function renderStudentApplications({ state, actions, toaster }) {
                 <div class="timeline-item">
                   <div class="timeline-item__time">${step.time}</div>
                   <div class="timeline-item__content">
-                    <div style="font-weight:500; margin-bottom:4px;">${step.label}</div>
-                    <div style="color: var(--text-light); font-size:12px;">${step.remark}</div>
+                    <div style="font-weight:500; margin-bottom:4px;">${t(step.label)}</div>
+                    <div style="color: var(--text-light); font-size:12px;">${t(step.remark)}</div>
                   </div>
                 </div>
               `
@@ -110,9 +111,9 @@ export function renderStudentApplications({ state, actions, toaster }) {
       </div>
       <div style="margin-top:18px;">
         <div class="page-header" style="margin-bottom:12px;">
-          <h4 style="font-size:15px; font-weight:600; margin-bottom:0;">沟通消息</h4>
+          <h4 style="font-size:15px; font-weight:600; margin-bottom:0;">${t("沟通消息")}</h4>
           <div class="table-actions">
-            <button class="button button--ghost button--sm" data-action="append-msg">补充消息</button>
+            <button class="button button--ghost button--sm" data-action="append-msg">${t("补充消息")}</button>
           </div>
         </div>
         ${current.messages.length
@@ -126,20 +127,20 @@ export function renderStudentApplications({ state, actions, toaster }) {
                 `
               )
               .join("")
-          : '<div class="empty-state" style="height:120px;">暂无消息</div>'}
+          : `<div class="empty-state" style="height:120px;">${t("暂无消息")}</div>`}
       </div>
       <div style="margin-top:18px;">
         <div class="page-header" style="margin-bottom:12px;">
-          <h4 style="font-size:15px; font-weight:600; margin-bottom:0;">附件补充</h4>
+          <h4 style="font-size:15px; font-weight:600; margin-bottom:0;">${t("附件资料")}</h4>
           <div class="table-actions">
-            <button class="button button--ghost button--sm" data-action="append-attachment">上传附件</button>
+            <button class="button button--ghost button--sm" data-action="append-attachment">${t("上传附件")}</button>
           </div>
         </div>
         ${current.attachments.length
           ? `<div class="attachment-list">${current.attachments
               .map((file) => `<div class="attachment-item"><span>${file.name}</span><span>${file.size || ""}</span></div>`)
               .join("")}</div>`
-          : '<div class="empty-state" style="height:120px;">暂无附件</div>'}
+          : `<div class="empty-state" style="height:120px;">${t("暂无附件")}</div>`}
       </div>
     `;
 
@@ -150,14 +151,14 @@ export function renderStudentApplications({ state, actions, toaster }) {
       if (!action) return;
       event.stopPropagation();
       if (action === "append-msg") {
-        const value = prompt("请输入要补充的沟通信息：");
+        const value = prompt(t("请输入要补充的沟通信息："));
         actions.appendApplicationMessage(current.id, value);
-        if (value) toaster.show("消息已补充", { type: "success" });
+        if (value) toaster.show(t("消息已补充"), { type: "success" });
       }
       if (action === "append-attachment") {
-        const value = prompt("请输入附件名称，例如：最新简历.pdf");
+        const value = prompt(t("请输入附件名称，例如：最新简历.pdf"));
         actions.addApplicationAttachment(current.id, value);
-        if (value) toaster.show("附件已更新", { type: "success" });
+        if (value) toaster.show(t("附件已更新"), { type: "success" });
       }
     };
   }
@@ -166,10 +167,10 @@ export function renderStudentApplications({ state, actions, toaster }) {
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
     if (target.dataset.action === "export") {
-      toaster.show("已生成投递记录导出任务", { type: "info" });
+      toaster.show(t("已生成投递记录导出任务"), { type: "info" });
     }
     if (target.dataset.action === "refresh") {
-      toaster.show("状态已同步，如有更新将展示在时间线", { type: "success" });
+      toaster.show(t("状态已同步，如有更新将展示在时间线"), { type: "success" });
     }
   });
 
