@@ -1,3 +1,5 @@
+import { renderQr, createQrDataUrl } from "../../utils/qr.js";
+
 export function renderTeacherActivityManagement({ state, actions, toaster }) {
   const activities = state.teacher.activities;
   const approvals = state.teacher.approvals;
@@ -34,27 +36,41 @@ export function renderTeacherActivityManagement({ state, actions, toaster }) {
 
   const approvalCard = document.createElement("section");
   approvalCard.className = "card";
-  approvalCard.innerHTML = `
-    <h3 class="section-title">Enterprise signup review</h3>
-    <div class="list">
-      ${approvals
-        .map(
-          (item) => `
-            <div class="data-row" data-id="${item.id}">
-              <div>
-                <div style="font-weight:600; margin-bottom:4px;">${item.company}</div>
-                <div style="color: var(--text-light); font-size: 12px;">Request ${item.type} · Submitted on ${item.requestAt}</div>
-              </div>
-              <div class="table-actions">
-                <button class="button button--ghost button--sm" data-action="reject">Reject</button>
-                <button class="button button--sm" data-action="approve">Approve</button>
-              </div>
-            </div>
-          `
-        )
-        .join("")}
-    </div>
-  `;
+  function renderApprovalCard() {
+    const latestState = window.__careerStore?.getState?.() || state;
+    const approvalList = latestState.teacher?.approvals || approvals;
+    approvalCard.innerHTML = `
+      <h3 class="section-title">Enterprise signup review</h3>
+      <div class="list">
+        ${
+          approvalList.length
+            ? approvalList
+                .map(
+                  (item) => `
+                    <div class="data-row" data-id="${item.id}">
+                      <div>
+                        <div style="font-weight:600; margin-bottom:4px;">${item.company}</div>
+                        <div style="color: var(--text-light); font-size: 12px;">Request ${item.type} · Submitted on ${item.requestAt}</div>
+                        <div style="color:#3a4f72; font-size:12px; margin-top:4px;">Status: <strong>${item.status}</strong></div>
+                      </div>
+                      <div class="table-actions">
+                        <button class="button button--ghost button--sm" data-action="reject" ${
+                          item.status === "Rejected" ? "disabled" : ""
+                        }>Reject</button>
+                        <button class="button button--sm" data-action="approve" ${
+                          item.status === "Approved" ? "disabled" : ""
+                        }>Approve</button>
+                      </div>
+                    </div>
+                  `
+                )
+                .join("")
+            : `<div class="empty-state">No pending enterprise requests</div>`
+        }
+      </div>
+    `;
+  }
+  renderApprovalCard();
   rightColumn.appendChild(approvalCard);
 
   const exportCard = document.createElement("section");
@@ -81,18 +97,28 @@ export function renderTeacherActivityManagement({ state, actions, toaster }) {
   qrCard.innerHTML = `
     <h3 class="section-title">Check-in QR code</h3>
     <div style="display:flex; align-items:center; gap:18px;">
-      <div style="width:140px; height:140px; border-radius:16px; background:#f4f7ff; display:flex; align-items:center; justify-content:center; color: var(--text-light); font-size:13px;">${checkin.qrPlaceholder}</div>
+      <div class="qr-preview" data-role="qr-preview"></div>
       <div>
         <div style="font-weight:600; margin-bottom:8px;">${checkin.qrHint}</div>
         <p style="color:#3a4f72; font-size:13px;">Generate a QR code for onsite check-in; download or refresh as needed.</p>
         <div class="table-actions" style="margin-top:12px;">
-          <button class="button button--outline button--sm">Download QR</button>
-          <button class="button button--ghost button--sm">Refresh</button>
+          <button class="button button--outline button--sm" data-action="download-qr">Download QR</button>
+          <button class="button button--ghost button--sm" data-action="refresh-qr">Refresh</button>
         </div>
       </div>
     </div>
   `;
   rightColumn.appendChild(qrCard);
+
+  const qrPreview = qrCard.querySelector("[data-role='qr-preview']");
+  let currentQrData = checkin.qrData || checkin.qrPlaceholder || checkin.qrHint;
+
+  function drawQr(data) {
+    currentQrData = data;
+    renderQr(qrPreview, data, { size: 140, background: "#ffffff", fill: "#1f2a4b" });
+  }
+
+  drawQr(currentQrData);
 
   function renderActivityCard() {
     activityCard.innerHTML = `
@@ -204,10 +230,12 @@ export function renderTeacherActivityManagement({ state, actions, toaster }) {
     if (action === "approve") {
       actions.updateTeacherApproval(id, "Approved");
       toaster.show("Signup approved", { type: "success" });
+      renderApprovalCard();
     }
     if (action === "reject") {
       actions.updateTeacherApproval(id, "Rejected");
       toaster.show("Signup rejected", { type: "warn" });
+      renderApprovalCard();
     }
   });
 
@@ -217,6 +245,29 @@ export function renderTeacherActivityManagement({ state, actions, toaster }) {
     const file = target.dataset.file;
     if (file) {
       toaster.show(`Exported ${file}`, { type: "success" });
+    }
+  });
+
+  qrCard.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    const action = target.dataset.action;
+    if (action === "refresh-qr") {
+      const next = actions.regenerateCheckinQr();
+      const latest =
+        window.__careerStore?.getState?.().teacher?.checkin?.qrData || next || currentQrData;
+      drawQr(latest);
+      toaster.show("Check-in QR regenerated", { type: "success" });
+    }
+    if (action === "download-qr") {
+      const dataUrl = createQrDataUrl(currentQrData, { size: 140, background: "#ffffff" });
+      const link = document.createElement("a");
+      link.href = dataUrl;
+      link.download = `checkin-qr-${Date.now()}.png`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toaster.show("Check-in QR downloaded", { type: "success" });
     }
   });
 

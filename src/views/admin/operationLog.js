@@ -1,6 +1,7 @@
 export function renderAdminOperationLog({ state, actions, toaster }) {
   const logs = state.admin.logs;
   const container = document.createElement("div");
+  const modules = ["", ...new Set(logs.map((log) => log.module || "General"))];
 
   const header = document.createElement("div");
   header.className = "page-header";
@@ -21,6 +22,9 @@ export function renderAdminOperationLog({ state, actions, toaster }) {
   filters.innerHTML = `
     <input class="input" type="text" placeholder="Search user or action" data-role="keyword" style="flex:1;" />
     <input class="input" type="date" data-role="date" />
+    <select class="input" data-role="module">
+      ${modules.map((module) => `<option value="${module}">${module || "All modules"}</option>`).join("")}
+    </select>
     <button class="button button--ghost" data-action="reset">Reset</button>
   `;
   container.appendChild(filters);
@@ -31,6 +35,7 @@ export function renderAdminOperationLog({ state, actions, toaster }) {
     <table class="table table--striped">
       <thead>
         <tr>
+          <th>Module</th>
           <th>Time</th>
           <th>Operator</th>
           <th>Action</th>
@@ -46,22 +51,26 @@ export function renderAdminOperationLog({ state, actions, toaster }) {
   const tbody = table.querySelector("tbody");
   const keywordInput = filters.querySelector("[data-role='keyword']");
   const dateInput = filters.querySelector("[data-role='date']");
+  const moduleSelect = filters.querySelector("[data-role='module']");
 
   function renderRows() {
     const keyword = keywordInput.value.trim();
     const date = dateInput.value;
+    const moduleFilter = moduleSelect.value;
     const rows = logs.filter((log) => {
       const matchKeyword = keyword
         ? log.actor.includes(keyword) || log.action.includes(keyword) || log.target.includes(keyword)
         : true;
       const matchDate = date ? log.time.startsWith(date) : true;
-      return matchKeyword && matchDate;
+      const matchModule = moduleFilter ? (log.module || "General") === moduleFilter : true;
+      return matchKeyword && matchDate && matchModule;
     });
 
     tbody.innerHTML = rows
       .map(
         (log) => `
           <tr>
+            <td>${log.module || "General"}</td>
             <td>${log.time}</td>
             <td>${log.actor}</td>
             <td>${log.action}</td>
@@ -79,9 +88,11 @@ export function renderAdminOperationLog({ state, actions, toaster }) {
 
   keywordInput.addEventListener("input", renderRows);
   dateInput.addEventListener("change", renderRows);
+  moduleSelect.addEventListener("change", renderRows);
   filters.querySelector("[data-action='reset']").addEventListener("click", () => {
     keywordInput.value = "";
     dateInput.value = "";
+    moduleSelect.value = "";
     renderRows();
   });
 

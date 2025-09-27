@@ -1,3 +1,5 @@
+import { renderQr, createQrDataUrl } from "../../utils/qr.js";
+
 export function renderAdminTeacherPanel({ state, navigate, toaster }) {
   const teacher = state.teacher;
   const container = document.createElement("div");
@@ -76,12 +78,16 @@ export function renderAdminTeacherPanel({ state, navigate, toaster }) {
     <div style="margin-top:16px;">
       <div style="font-weight:600; margin-bottom:6px;">Check-in QR code</div>
       <div style="display:flex; gap:12px; align-items:center;">
-        <div style="width:96px; height:96px; border-radius:12px; background:#f4f7ff; display:flex; align-items:center; justify-content:center; color: var(--text-light); font-size:12px;">${teacher.checkin.qrPlaceholder}</div>
+        <div class="qr-preview qr-preview--sm" data-role="qr-preview"></div>
         <button class="button button--outline button--sm" data-action="download">Download</button>
       </div>
     </div>
   `;
   grid.appendChild(checklistCard);
+
+  const qrPreview = checklistCard.querySelector("[data-role='qr-preview']");
+  const qrData = teacher.checkin.qrData || teacher.checkin.qrPlaceholder || teacher.checkin.qrHint;
+  renderQr(qrPreview, qrData, { size: 96, background: "#ffffff", fill: "#1f2a4b" });
 
   header.addEventListener("click", (event) => {
     const target = event.target;
@@ -105,7 +111,15 @@ export function renderAdminTeacherPanel({ state, navigate, toaster }) {
       toaster.show(`Reminder sent to ${company} reviewer`, { type: "info" });
     }
     if (action === "download") {
-      toaster.show("Check-in QR downloaded (mock)", { type: "success" });
+      const latest = window.__careerStore?.getState?.().teacher?.checkin?.qrData || qrData;
+      const dataUrl = createQrDataUrl(latest, { size: 160, background: "#ffffff" });
+      const link = document.createElement("a");
+      link.href = dataUrl;
+      link.download = `checkin-qr-${Date.now()}.png`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toaster.show("Check-in QR downloaded", { type: "success" });
     }
   });
 

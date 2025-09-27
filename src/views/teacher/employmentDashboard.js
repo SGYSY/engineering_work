@@ -5,6 +5,7 @@ export function renderTeacherEmploymentDashboard({ state, toaster }) {
     college: dashboard.filters.college[0],
     major: dashboard.filters.major[0]
   };
+  const records = dashboard.records || [];
 
   const container = document.createElement("div");
   const header = document.createElement("div");
@@ -44,24 +45,29 @@ export function renderTeacherEmploymentDashboard({ state, toaster }) {
   grid.appendChild(regionCard);
 
   function renderCards() {
+    const filtered = getFilteredRecords();
+    const industry = aggregateByKey(filtered, "industry");
+    const category = aggregateByKey(filtered, "category");
+    const region = aggregateByKey(filtered, "region");
+
     industryCard.innerHTML = `
       <h3 class="section-title">Industry distribution</h3>
       <div class="data-list">
-        ${dashboard.industryDistribution.map((item) => renderBarRow(item)).join("")}
+        ${industry.length ? industry.map((item) => renderBarRow(item)).join("") : `<div class="empty-state">No data</div>`}
       </div>
     `;
 
     categoryCard.innerHTML = `
       <h3 class="section-title">Role category distribution</h3>
       <div class="data-list">
-        ${dashboard.jobCategory.map((item) => renderBarRow(item, "#6f8cfb")).join("")}
+        ${category.length ? category.map((item) => renderBarRow(item, "#6f8cfb")).join("") : `<div class="empty-state">No data</div>`}
       </div>
     `;
 
     regionCard.innerHTML = `
       <h3 class="section-title">Regional flow</h3>
       <div class="data-list">
-        ${dashboard.regionFlow.map((item) => renderBarRow(item, "#34caa5")).join("")}
+        ${region.length ? region.map((item) => renderBarRow(item, "#34caa5")).join("") : `<div class="empty-state">No data</div>`}
       </div>
     `;
   }
@@ -70,6 +76,7 @@ export function renderTeacherEmploymentDashboard({ state, toaster }) {
     select.addEventListener("change", () => {
       stateFilter[select.name] = select.value;
       updateSubtitle();
+      renderCards();
     });
   });
 
@@ -82,7 +89,35 @@ export function renderTeacherEmploymentDashboard({ state, toaster }) {
   });
 
   function updateSubtitle() {
-    header.querySelector("p").textContent = `Current filters: Class of ${stateFilter.year} · ${stateFilter.college} · ${stateFilter.major}`;
+    const total = getFilteredRecords().length;
+    header.querySelector("p").textContent = `Current filters: Class of ${stateFilter.year} · ${stateFilter.college} · ${stateFilter.major} · ${total} record${total === 1 ? "" : "s"}`;
+  }
+
+  function getFilteredRecords() {
+    if (!records.length) {
+      return [];
+    }
+    return records.filter((item) => {
+      const matchYear = stateFilter.year ? item.year === stateFilter.year : true;
+      const matchCollege = stateFilter.college ? item.college === stateFilter.college : true;
+      const matchMajor = stateFilter.major ? item.major === stateFilter.major : true;
+      return matchYear && matchCollege && matchMajor;
+    });
+  }
+
+  function aggregateByKey(list, key) {
+    if (!list.length) {
+      return [];
+    }
+    const counts = list.reduce((acc, item) => {
+      const value = item[key] || "Unknown";
+      acc[value] = (acc[value] || 0) + 1;
+      return acc;
+    }, {});
+    const total = Object.values(counts).reduce((sum, value) => sum + value, 0) || 1;
+    return Object.entries(counts)
+      .map(([name, count]) => ({ name, value: Math.round((count / total) * 100) }))
+      .sort((a, b) => b.value - a.value);
   }
 
   renderCards();

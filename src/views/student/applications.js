@@ -1,7 +1,7 @@
 import { t } from "../../utils/i18n.js";
 export function renderStudentApplications({ state, actions, toaster }) {
   const container = document.createElement("div");
-  const applications = state.student.applications;
+  let applications = state.student.applications;
 
   const header = document.createElement("div");
   header.className = "page-header";
@@ -47,7 +47,15 @@ export function renderStudentApplications({ state, actions, toaster }) {
 
   let activeId = applications[0]?.id || null;
 
+  function syncApplications() {
+    const latestState = window.__careerStore?.getState?.();
+    if (latestState?.student?.applications) {
+      applications = latestState.student.applications;
+    }
+  }
+
   function renderTable() {
+    syncApplications();
     tbody.innerHTML = "";
     applications.forEach((item) => {
       const tr = document.createElement("tr");
@@ -77,6 +85,7 @@ export function renderStudentApplications({ state, actions, toaster }) {
   }
 
   function renderDetail() {
+    syncApplications();
     const current = applications.find((item) => item.id === activeId);
     if (!current) {
       detailCard.innerHTML = `<div class="empty-state">${t("请选择投递记录")}</div>`;
@@ -133,16 +142,58 @@ export function renderStudentApplications({ state, actions, toaster }) {
         <div class="page-header" style="margin-bottom:12px;">
           <h4 style="font-size:15px; font-weight:600; margin-bottom:0;">${t("附件资料")}</h4>
           <div class="table-actions">
-            <button class="button button--ghost button--sm" data-action="append-attachment">${t("上传附件")}</button>
+            <button class="button button--ghost button--sm" data-action="upload-attachment">${t("上传附件")}</button>
           </div>
         </div>
         ${current.attachments.length
           ? `<div class="attachment-list">${current.attachments
-              .map((file) => `<div class="attachment-item"><span>${file.name}</span><span>${file.size || ""}</span></div>`)
+              .map((file, index) => {
+                const uploadedAt = file.uploadedAt ? formatDateTime(file.uploadedAt) : "";
+                const meta = [file.size || "", uploadedAt].filter(Boolean).join(" · ");
+                const attachmentId = file.id || "";
+                return `
+                  <div class="attachment-item" data-attachment-index="${index}" data-attachment-id="${attachmentId}">
+                    <div>
+                      <div style="font-weight:600;">${file.name}</div>
+                      <div style="color: var(--text-light); font-size:12px;">${meta}</div>
+                    </div>
+                    <div class="table-actions">
+                      <button class="button button--ghost button--sm" data-action="remove-attachment" data-attachment-index="${index}" data-attachment-id="${attachmentId}">${t("删除")}</button>
+                    </div>
+                  </div>
+                `;
+              })
               .join("")}</div>`
           : `<div class="empty-state" style="height:120px;">${t("暂无附件")}</div>`}
       </div>
     `;
+
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = "application/pdf,.pdf";
+    fileInput.style.display = "none";
+    detailCard.appendChild(fileInput);
+
+    fileInput.addEventListener("change", () => {
+      const file = fileInput.files?.[0];
+      if (!file) return;
+      const name = file.name || "attachment.pdf";
+      const isPdf =
+        (file.type && file.type.toLowerCase() === "application/pdf") || /\.pdf$/i.test(name);
+      if (!isPdf) {
+        toaster.show(t("仅支持上传PDF文件"), { type: "warn" });
+        return;
+      }
+      const attachment = {
+        name,
+        size: formatFileSize(file.size),
+        type: file.type,
+        uploadedAt: new Date().toISOString()
+      };
+      actions.addApplicationAttachment(current.id, attachment);
+      toaster.show(t("附件已更新"), { type: "success" });
+      renderDetail();
+    });
 
     detailCard.onclick = (event) => {
       const target = event.target;
@@ -155,10 +206,16 @@ export function renderStudentApplications({ state, actions, toaster }) {
         actions.appendApplicationMessage(current.id, value);
         if (value) toaster.show(t("消息已补充"), { type: "success" });
       }
-      if (action === "append-attachment") {
-        const value = prompt(t("请输入附件名称，例如：最新简历.pdf"));
-        actions.addApplicationAttachment(current.id, value);
-        if (value) toaster.show(t("附件已更新"), { type: "success" });
+      if (action === "upload-attachment") {
+        fileInput.value = "";
+        fileInput.click();
+      }
+      if (action === "remove-attachment") {
+        const attachmentId = target.dataset.attachmentId || null;
+        const attachmentIndex = target.dataset.attachmentIndex ?? null;
+        actions.removeApplicationAttachment(current.id, attachmentId, attachmentIndex);
+        toaster.show(t("附件已移除"), { type: "info" });
+        renderDetail();
       }
     };
   }
@@ -178,4 +235,27 @@ export function renderStudentApplications({ state, actions, toaster }) {
   renderDetail();
 
   return container;
+}
+
+function formatFileSize(bytes) {
+  if (!bytes && bytes !== 0) return "";
+  const units = ["B", "KB", "MB", "GB"];
+  let size = bytes;
+  let unitIndex = 0;
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex += 1;
+  }
+  const value = size >= 10 || size % 1 === 0 ? Math.round(size) : parseFloat(size.toFixed(1));
+  return `${value}${units[unitIndex]}`;
+}
+
+function formatDateTime(value) {
+  try {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    return date.toLocaleString();
+  } catch (error) {
+    return "";
+  }
 }

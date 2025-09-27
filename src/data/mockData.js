@@ -47,28 +47,36 @@ const accounts = [
     username: "student",
     password: "student123",
     role: "student",
-    displayName: "Alex Zhang"
+    displayName: "Alex Zhang",
+    disabled: false,
+    userId: null
   },
   {
     id: "acct-hr",
     username: "hr",
     password: "hr123",
     role: "hr",
-    displayName: "Wang (HR)"
+    displayName: "Wang (HR)",
+    disabled: false,
+    userId: "user002"
   },
   {
     id: "acct-teacher",
     username: "teacher",
     password: "teacher123",
     role: "teacher",
-    displayName: "Professor Zhang"
+    displayName: "Professor Zhang",
+    disabled: false,
+    userId: "user001"
   },
   {
     id: "acct-admin",
     username: "admin",
     password: "admin123",
     role: "admin",
-    displayName: "Admin Li"
+    displayName: "Admin Li",
+    disabled: false,
+    userId: "user003"
   }
 ];
 
@@ -141,6 +149,7 @@ const studentApplications = [
     jobId: "job001",
     jobTitle: "Frontend Engineer",
     company: "Baidu Technology Co., Ltd.",
+    candidateName: "Alex Zhang",
     submitDate: "2025-02-13",
     status: "Interview Invite",
     progress: [
@@ -152,7 +161,7 @@ const studentApplications = [
       { sender: "HR - Ziqi Wang", content: "Please confirm the interview on Feb 20 at 10:00." }
     ],
     attachments: [
-      { name: "Portfolio.pdf", size: "2.4MB" }
+      { id: "apply001-att-portfolio", name: "Portfolio.pdf", size: "2.4MB", type: "application/pdf" }
     ]
   },
   {
@@ -160,6 +169,7 @@ const studentApplications = [
     jobId: "job002",
     jobTitle: "Data Analytics Intern",
     company: "Alibaba Group",
+    candidateName: "Alex Zhang",
     submitDate: "2025-02-11",
     status: "Resume Screening",
     progress: [
@@ -236,16 +246,18 @@ const studentActivities = [
     date: "2025-02-25 14:00",
     location: "Career Center Auditorium A1",
     status: "Registered",
-    guide: "Arrive 30 minutes early and bring your student ID for entry."
+    guide: "Arrive 30 minutes early and bring your student ID for entry.",
+    linkedTeacherId: null
   },
   {
     id: "act002",
     type: "Career Fair",
-    title: "South China Tech Career Fair",
+    title: "Spring 2025 Career Fair",
     date: "2025-03-05 09:00",
     location: "Main Gymnasium",
     status: "Open",
-    guide: "Submit the online form in advance and present the QR code onsite."
+    guide: "Submit the online form in advance and present the QR code onsite.",
+    linkedTeacherId: "teach-act-1"
   }
 ];
 
@@ -282,7 +294,12 @@ const hrJobs = [
     exposure: 3560,
     views: 980,
     applicants: 42,
-    publishDate: "2025-02-12"
+    publishDate: "2025-02-12",
+    city: "Beijing",
+    salary: "18k-25k",
+    deadline: "2025-03-31",
+    description:
+      "Lead the campus recruitment front-end development, own landing pages, and collaborate with data teams to surface insights."
   },
   {
     id: "job002",
@@ -292,7 +309,12 @@ const hrJobs = [
     exposure: 1280,
     views: 320,
     applicants: 18,
-    publishDate: "2025-02-10"
+    publishDate: "2025-02-10",
+    city: "Hangzhou",
+    salary: "200/day",
+    deadline: "2025-04-15",
+    description:
+      "Assist the talent analytics team to prepare dashboards, clean datasets, and prepare interview packs for enterprises."
   }
 ];
 
@@ -335,6 +357,16 @@ const hrCandidates = {
   ]
 };
 
+const hrNotifications = [
+  {
+    id: "hr-notify-1",
+    category: "Application",
+    title: "Alex Zhang submitted Frontend Engineer resume",
+    time: "2025-02-15 10:20",
+    read: false
+  }
+];
+
 const hrCampusEvents = {
   calendar: [
     {
@@ -372,7 +404,8 @@ const teacherActivities = [
     location: "Main Gymnasium",
     capacity: 80,
     registered: 65,
-    status: "Under Review"
+    status: "Under Review",
+    linkedActivityId: "act002"
   },
   {
     id: "teach-act-2",
@@ -381,7 +414,8 @@ const teacherActivities = [
     location: "Career Center B201",
     capacity: 120,
     registered: 40,
-    status: "Approved"
+    status: "Approved",
+    linkedActivityId: null
   }
 ];
 
@@ -392,7 +426,8 @@ const teacherApprovals = [
     requestAt: "2025-02-12",
     type: "Info Session",
     boothNeed: "Double booth",
-    status: "Pending"
+    status: "Pending",
+    linkedFormId: "approval-1"
   }
 ];
 
@@ -406,8 +441,121 @@ const teacherExports = [
 
 const teacherCheckin = {
   qrHint: "Scan to check in: Spring 2025 Career Fair",
-  qrPlaceholder: "QR Placeholder"
+  qrPlaceholder: "QR Placeholder",
+  qrData: "https://career.univ.edu/checkin/spring-2025",
+  updatedAt: "2025-02-12T09:00:00Z"
 };
+
+const employmentRecords = [
+  {
+    id: "rec-2024-01",
+    year: "2024",
+    college: "School of Computer Science",
+    major: "Computer Science",
+    industry: "Internet",
+    category: "R&D",
+    region: "Beijing"
+  },
+  {
+    id: "rec-2024-02",
+    year: "2024",
+    college: "School of Computer Science",
+    major: "Software Engineering",
+    industry: "Internet",
+    category: "Product & Ops",
+    region: "Hangzhou"
+  },
+  {
+    id: "rec-2024-03",
+    year: "2024",
+    college: "School of AI",
+    major: "Artificial Intelligence",
+    industry: "Artificial Intelligence",
+    category: "R&D",
+    region: "Shenzhen"
+  },
+  {
+    id: "rec-2024-04",
+    year: "2024",
+    college: "School of AI",
+    major: "Information Management",
+    industry: "Education",
+    category: "Data Analytics",
+    region: "Shanghai"
+  },
+  {
+    id: "rec-2023-01",
+    year: "2023",
+    college: "School of Economics",
+    major: "Information Management",
+    industry: "Finance",
+    category: "Business Support",
+    region: "Shanghai"
+  },
+  {
+    id: "rec-2023-02",
+    year: "2023",
+    college: "School of Computer Science",
+    major: "Computer Science",
+    industry: "Internet",
+    category: "R&D",
+    region: "Beijing"
+  },
+  {
+    id: "rec-2023-03",
+    year: "2023",
+    college: "School of AI",
+    major: "Artificial Intelligence",
+    industry: "Manufacturing",
+    category: "R&D",
+    region: "Guangzhou"
+  },
+  {
+    id: "rec-2023-04",
+    year: "2023",
+    college: "School of Economics",
+    major: "Information Management",
+    industry: "Finance",
+    category: "Data Analytics",
+    region: "Shanghai"
+  },
+  {
+    id: "rec-2025-01",
+    year: "2025",
+    college: "School of Computer Science",
+    major: "Software Engineering",
+    industry: "Internet",
+    category: "R&D",
+    region: "Beijing"
+  },
+  {
+    id: "rec-2025-02",
+    year: "2025",
+    college: "School of AI",
+    major: "Artificial Intelligence",
+    industry: "Artificial Intelligence",
+    category: "R&D",
+    region: "Shenzhen"
+  },
+  {
+    id: "rec-2025-03",
+    year: "2025",
+    college: "School of Economics",
+    major: "Information Management",
+    industry: "Finance",
+    category: "Business Support",
+    region: "Shanghai"
+  },
+  {
+    id: "rec-2025-04",
+    year: "2025",
+    college: "School of Computer Science",
+    major: "Computer Science",
+    industry: "New Energy",
+    category: "Data Analytics",
+    region: "Hangzhou"
+  }
+];
 
 const employmentDashboard = {
   filters: {
@@ -415,6 +563,7 @@ const employmentDashboard = {
     college: ["School of Computer Science", "School of AI", "School of Economics"],
     major: ["Computer Science", "Software Engineering", "Artificial Intelligence", "Information Management"]
   },
+  records: employmentRecords,
   industryDistribution: [
     { name: "Internet", value: 35 },
     { name: "Manufacturing", value: 20 },
@@ -464,6 +613,8 @@ const enterpriseAudit = [
 const adminUsers = [
   {
     id: "user001",
+    username: "teacher",
+    platformRole: "teacher",
     name: "Professor Zhang",
     role: "Teacher Admin",
     department: "School of Computer Science",
@@ -472,6 +623,8 @@ const adminUsers = [
   },
   {
     id: "user002",
+    username: "hr",
+    platformRole: "hr",
     name: "Wang (HR)",
     role: "Enterprise HR",
     department: "Baidu Technology",
@@ -480,6 +633,8 @@ const adminUsers = [
   },
   {
     id: "user003",
+    username: "admin",
+    platformRole: "admin",
     name: "Admin Li",
     role: "System Admin",
     department: "Career Center",
@@ -499,6 +654,7 @@ const adminLogs = [
   {
     id: "log001",
     actor: "Admin Li",
+    module: "Activity",
     action: "Created activity approval",
     target: "Spring 2025 Career Fair",
     time: "2025-02-14 09:32",
@@ -507,6 +663,7 @@ const adminLogs = [
   {
     id: "log002",
     actor: "Wang (HR)",
+    module: "Job",
     action: "Published job",
     target: "Frontend Engineer",
     time: "2025-02-12 14:10",
@@ -533,7 +690,8 @@ export const initialState = {
   hr: {
     jobs: hrJobs,
     candidates: hrCandidates,
-    campusEvents: hrCampusEvents
+    campusEvents: hrCampusEvents,
+    notifications: hrNotifications
   },
   teacher: {
     activities: teacherActivities,

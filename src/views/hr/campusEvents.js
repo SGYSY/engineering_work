@@ -97,9 +97,13 @@ export function renderHrCampusEvents({ state, actions, toaster }) {
     if (action === "save") {
       toaster.show("Registration draft saved", { type: "success" });
     }
+    if (action === "save") {
+      actions.updateCampusRegistration(payload);
+      toaster.show("Registration draft saved", { type: "success" });
+    }
     if (action === "submit") {
+      actions.submitCampusRegistration(payload);
       toaster.show("Registration submitted for review", { type: "success" });
-      actions.updateCampusRegistration({ status: "Reviewing" });
     }
   });
 

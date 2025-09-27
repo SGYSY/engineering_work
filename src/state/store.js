@@ -115,6 +115,43 @@ function addNotification(draft, payload) {
   });
 }
 
+function addHrNotification(draft, payload) {
+  draft.hr.notifications = draft.hr.notifications || [];
+  draft.hr.notifications.unshift({
+    id: `hr-notify-${Date.now()}`,
+    read: false,
+    time: new Date().toISOString().replace("T", " ").slice(0, 16),
+    ...payload
+  });
+}
+
+function pushLog(draft, entry) {
+  draft.admin.logs.unshift({
+    id: `log-${Date.now()}`,
+    time: new Date().toISOString().replace("T", " ").slice(0, 16),
+    module: entry.module || "General",
+    actor: entry.actor || getActorName(draft),
+    action: entry.action || "Updated",
+    target: entry.target || "-",
+    ip: entry.ip || "-"
+  });
+}
+
+function getActorName(draft) {
+  if (draft.session?.displayName) return draft.session.displayName;
+  if (draft.session?.role) return draft.session.role;
+  return "System";
+}
+
+function generatePassword(length = 10) {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+  let result = "";
+  for (let index = 0; index < length; index += 1) {
+    result += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return result;
+}
+
 export const actions = {
   login({ username, password }) {
     const nextUsername = (username || "").trim().toLowerCase();
@@ -125,6 +162,9 @@ export const actions = {
     if (!account || account.password !== password) {
       throw new Error("Invalid credentials");
     }
+    if (account.disabled) {
+      throw new Error("Account disabled, contact administrator");
+    }
     setState((draft) => {
       draft.session = {
         authenticated: true,
@@ -133,11 +173,21 @@ export const actions = {
         displayName: account.displayName,
         lastLoginAt: new Date().toISOString()
       };
+      pushLog(draft, {
+        module: "Auth",
+        action: "Signed in",
+        target: account.username
+      });
     });
   },
 
   logout() {
     setState((draft) => {
+      pushLog(draft, {
+        module: "Auth",
+        action: "Signed out",
+        target: draft.session?.displayName || draft.session?.role || "Session"
+      });
       draft.session = createEmptySession();
     });
   },
@@ -166,9 +216,20 @@ export const actions = {
         label: "Reapplied",
         remark: "Application record updated"
       });
+      record.candidateName = draft.session.displayName || "Student";
       addNotification(draft, {
         category: "Application Status",
         title: `${job.company} - ${job.title} submitted successfully`
+      });
+      addHrNotification(draft, {
+        category: "Application",
+        title: `${record.candidateName} submitted ${job.title}`,
+        jobId: job.id
+      });
+      pushLog(draft, {
+        module: "Application",
+        action: "Submitted application",
+        target: `${job.title} @ ${job.company}`
       });
     });
   },
@@ -182,6 +243,20 @@ export const actions = {
         time: new Date().toISOString().replace("T", " ").slice(0, 16),
         label: status,
         remark
+      });
+      addNotification(draft, {
+        category: "Application Status",
+        title: `${application.jobTitle} ${status}`
+      });
+      addHrNotification(draft, {
+        category: "Application",
+        title: `${application.jobTitle} marked as ${status}`,
+        jobId: application.jobId
+      });
+      pushLog(draft, {
+        module: "Application",
+        action: `Updated status to ${status}`,
+        target: `${application.jobTitle}`
       });
     });
   },
@@ -198,15 +273,51 @@ export const actions = {
     });
   },
 
-  addApplicationAttachment(applicationId, fileName) {
-    if (!fileName) return;
+  addApplicationAttachment(applicationId, payload) {
+    if (!payload) return;
     setState((draft) => {
       const application = draft.student.applications.find((item) => item.id === applicationId);
       if (!application) return;
-      application.attachments.push({
-        name: fileName,
-        size: "Auto generated"
-      });
+      let attachment;
+      if (typeof payload === "string") {
+        attachment = {
+          id: `att-${Date.now()}`,
+          name: payload,
+          size: "Auto generated",
+          uploadedAt: new Date().toISOString()
+        };
+      } else {
+        const generatedId = `att-${Date.now()}`;
+        attachment = {
+          id: payload.id || generatedId,
+          name: payload.name || "Attachment.pdf",
+          size: payload.size || "Auto generated",
+          type: payload.type || "application/pdf",
+          url: payload.url || null,
+          uploadedAt: payload.uploadedAt || new Date().toISOString()
+        };
+      }
+      application.attachments.push(attachment);
+    });
+  },
+
+  removeApplicationAttachment(applicationId, attachmentId, index = null) {
+    setState((draft) => {
+      const application = draft.student.applications.find((item) => item.id === applicationId);
+      if (!application) return;
+      if (attachmentId) {
+        const before = application.attachments.length;
+        application.attachments = application.attachments.filter((item) => item.id !== attachmentId);
+        if (before !== application.attachments.length) {
+          return;
+        }
+      }
+      if (index !== null && index !== undefined) {
+        const idx = Number(index);
+        if (Number.isInteger(idx) && idx >= 0 && idx < application.attachments.length) {
+          application.attachments.splice(idx, 1);
+        }
+      }
     });
   },
 
@@ -269,6 +380,24 @@ export const actions = {
         category: "Activity Reminder",
         title: `${act.title} ${nextStatus === "Registered" ? "registration confirmed" : "registration cancelled"}`
       });
+      const teacherActivity = draft.teacher.activities.find(
+        (item) => item.linkedActivityId === activityId || item.id === activityId
+      );
+      if (teacherActivity) {
+        if (nextStatus === "Registered") {
+          teacherActivity.registered = Math.min(
+            teacherActivity.capacity,
+            (teacherActivity.registered || 0) + 1
+          );
+        } else {
+          teacherActivity.registered = Math.max(0, (teacherActivity.registered || 1) - 1);
+        }
+      }
+      pushLog(draft, {
+        module: "Activity",
+        action: `${nextStatus === "Registered" ? "Registered for" : "Cancelled"} activity`,
+        target: act.title
+      });
     });
   },
 
@@ -277,20 +406,39 @@ export const actions = {
       const act = draft.student.activities.find((item) => item.id === activityId);
       if (act) {
         act.guide = guide;
+        pushLog(draft, {
+          module: "Activity",
+          action: "Updated onsite guide",
+          target: act.title
+        });
       }
     });
   },
 
   createJob(payload) {
     setState((draft) => {
-      draft.hr.jobs.unshift({
-        id: `job${Date.now()}`,
-        exposure: 0,
-        views: 0,
-        applicants: 0,
-        status: "Pending",
-        publishDate: new Date().toISOString().slice(0, 10),
-        ...payload
+      const jobId = payload.id || `job${Date.now()}`;
+      const job = {
+        id: jobId,
+        title: payload.title || "New position",
+        type: payload.type || "Full-time",
+        status: payload.status || "Pending",
+        exposure: payload.exposure || 0,
+        views: payload.views || 0,
+        applicants: payload.applicants || 0,
+        publishDate: payload.publishDate || new Date().toISOString().slice(0, 10),
+        city: payload.city || "",
+        salary: payload.salary || "Negotiable",
+        deadline: payload.deadline || "",
+        description:
+          payload.description ||
+          "Please add a description so students understand the expectations."
+      };
+      draft.hr.jobs.unshift(job);
+      pushLog(draft, {
+        module: "Job",
+        action: "Created job",
+        target: job.title
       });
     });
   },
@@ -300,6 +448,11 @@ export const actions = {
       const job = draft.hr.jobs.find((item) => item.id === jobId);
       if (!job) return;
       Object.assign(job, changes);
+      pushLog(draft, {
+        module: "Job",
+        action: "Updated job",
+        target: job.title
+      });
     });
   },
 
@@ -307,12 +460,31 @@ export const actions = {
     setState((draft) => {
       const job = draft.hr.jobs.find((item) => item.id === jobId);
       if (!job) return;
-      draft.hr.jobs.push({
+      const clone = {
         ...job,
         id: `${job.id}-${Date.now()}`,
         title: `${job.title} (${suffix})`,
         status: "Pending",
         publishDate: new Date().toISOString().slice(0, 10)
+      };
+      draft.hr.jobs.push(clone);
+      pushLog(draft, {
+        module: "Job",
+        action: "Duplicated job",
+        target: clone.title
+      });
+    });
+  },
+
+  deleteJob(jobId) {
+    setState((draft) => {
+      const index = draft.hr.jobs.findIndex((item) => item.id === jobId);
+      if (index === -1) return;
+      const [removed] = draft.hr.jobs.splice(index, 1);
+      pushLog(draft, {
+        module: "Job",
+        action: "Deleted job",
+        target: removed?.title || jobId
       });
     });
   },
@@ -323,22 +495,87 @@ export const actions = {
       if (!candidate) return;
       candidate.stage = stageId;
       candidate.updatedAt = new Date().toISOString().slice(0, 10);
+      const stage = draft.hr.candidates.stages.find((item) => item.id === stageId);
+      addHrNotification(draft, {
+        category: "Pipeline",
+        title: `${candidate.name} moved to ${stage?.label || stageId}`
+      });
+      pushLog(draft, {
+        module: "Candidate",
+        action: `Stage set to ${stage?.label || stageId}`,
+        target: candidate.name
+      });
     });
   },
 
   updateCampusRegistration(changes) {
     setState((draft) => {
       Object.assign(draft.hr.campusEvents.registrationForm, changes);
+      pushLog(draft, {
+        module: "Campus",
+        action: "Saved registration draft",
+        target: draft.hr.campusEvents.registrationForm.company
+      });
+    });
+  },
+
+  submitCampusRegistration(changes = {}) {
+    setState((draft) => {
+      Object.assign(draft.hr.campusEvents.registrationForm, changes);
+      const form = draft.hr.campusEvents.registrationForm;
+      form.status = "Reviewing";
+      const approvalId = `approval-${Date.now()}`;
+      draft.teacher.approvals.unshift({
+        id: approvalId,
+        company: form.company,
+        requestAt: new Date().toISOString().slice(0, 10),
+        type: form.boothType || "Campus Event",
+        boothNeed: form.boothType || "Standard",
+        status: "Pending",
+        linkedFormId: approvalId,
+        remark: form.remark || ""
+      });
+      addHrNotification(draft, {
+        category: "Campus",
+        title: `${form.company} registration submitted`
+      });
+      pushLog(draft, {
+        module: "Campus",
+        action: "Submitted campus registration",
+        target: form.company
+      });
     });
   },
 
   addTeacherActivity(activity) {
     setState((draft) => {
-      draft.teacher.activities.unshift({
-        id: `teach-act-${Date.now()}`,
-        status: "Under Review",
-        registered: 0,
-        ...activity
+      const teacherId = activity.id || `teach-act-${Date.now()}`;
+      const studentId = activity.linkedActivityId || `act-${Date.now()}`;
+      const teacherActivity = {
+        id: teacherId,
+        title: activity.title || "Untitled activity",
+        date: activity.date || "TBD",
+        location: activity.location || "TBD",
+        capacity: activity.capacity || 0,
+        registered: activity.registered || 0,
+        status: activity.status || "Under Review",
+        linkedActivityId: studentId
+      };
+      draft.teacher.activities.unshift(teacherActivity);
+      draft.student.activities.unshift({
+        id: studentId,
+        type: activity.type || "Campus Activity",
+        title: teacherActivity.title,
+        date: teacherActivity.date,
+        location: teacherActivity.location,
+        status: "Open",
+        guide: activity.desc || "Counselor will release onsite instructions soon.",
+        linkedTeacherId: teacherId
+      });
+      pushLog(draft, {
+        module: "Activity",
+        action: "Created campus activity",
+        target: teacherActivity.title
       });
     });
   },
@@ -348,7 +585,39 @@ export const actions = {
       const approval = draft.teacher.approvals.find((item) => item.id === approvalId);
       if (!approval) return;
       approval.status = status;
+      approval.reviewedAt = new Date().toISOString().slice(0, 10);
+      if (approval.linkedFormId) {
+        draft.hr.campusEvents.registrationForm.status = status;
+      }
+      addHrNotification(draft, {
+        category: "Campus",
+        title: `${approval.company} ${status}`
+      });
+      pushLog(draft, {
+        module: "Campus",
+        action: `Marked ${status}`,
+        target: approval.company
+      });
     });
+  },
+
+  regenerateCheckinQr() {
+    let latest = null;
+    setState((draft) => {
+      const checkin = draft.teacher.checkin;
+      if (!checkin) return;
+      const token = generatePassword(8).toUpperCase();
+      const data = `https://career.univ.edu/checkin/${token}`;
+      checkin.qrData = data;
+      checkin.updatedAt = new Date().toISOString();
+      latest = data;
+      pushLog(draft, {
+        module: "Activity",
+        action: "Regenerated check-in QR",
+        target: token
+      });
+    });
+    return latest;
   },
 
   toggleEnterpriseBlacklist(auditId) {
@@ -356,6 +625,11 @@ export const actions = {
       const enterprise = draft.teacher.enterpriseAudit.find((item) => item.id === auditId);
       if (!enterprise) return;
       enterprise.blacklist = !enterprise.blacklist;
+      pushLog(draft, {
+        module: "Enterprise",
+        action: enterprise.blacklist ? "Added to blacklist" : "Removed from blacklist",
+        target: enterprise.company
+      });
     });
   },
 
@@ -368,15 +642,33 @@ export const actions = {
         date: new Date().toISOString().slice(0, 10),
         result: status
       });
+      pushLog(draft, {
+        module: "Enterprise",
+        action: `Review ${status}`,
+        target: enterprise.company
+      });
     });
   },
 
-  updateUserRole(userId, roleName) {
+  updateUserRole(userId, roleName, platformRole) {
     setState((draft) => {
       const user = draft.admin.users.find((item) => item.id === userId);
-      if (user) {
-        user.role = roleName;
+      if (!user) return;
+      user.role = roleName;
+      if (platformRole) {
+        user.platformRole = platformRole;
       }
+      const account = draft.accounts.find(
+        (item) => item.userId === userId || item.username === user.username
+      );
+      if (account && platformRole) {
+        account.role = platformRole;
+      }
+      pushLog(draft, {
+        module: "User",
+        action: `Updated role to ${roleName}`,
+        target: user.name
+      });
     });
   },
 
@@ -385,17 +677,24 @@ export const actions = {
       const user = draft.admin.users.find((item) => item.id === userId);
       if (user) {
         user.status = user.status === "Enabled" ? "Disabled" : "Enabled";
+        const account = draft.accounts.find(
+          (item) => item.userId === userId || item.username === user.username
+        );
+        if (account) {
+          account.disabled = user.status !== "Enabled";
+        }
+        pushLog(draft, {
+          module: "User",
+          action: `${user.status === "Enabled" ? "Enabled" : "Disabled"} account`,
+          target: user.name
+        });
       }
     });
   },
 
   addLog(entry) {
     setState((draft) => {
-      draft.admin.logs.unshift({
-        id: `log-${Date.now()}`,
-        time: new Date().toISOString().replace("T", " ").slice(0, 16),
-        ...entry
-      });
+      pushLog(draft, entry);
     });
   },
 
@@ -409,6 +708,148 @@ export const actions = {
         id: role.id || `role-${Date.now()}`,
         name: role.name || "New Role",
         desc: role.desc || "Custom permissions"
+      });
+      pushLog(draft, {
+        module: "User",
+        action: "Created role",
+        target: role.name || "New Role"
+      });
+    });
+  },
+
+  createPlatformUser(payload) {
+    const username = (payload.username || "").trim();
+    const password = (payload.password || "").trim();
+    if (!username || !password) {
+      throw new Error("Username and password are required");
+    }
+    const normalized = username.toLowerCase();
+    const current = getState();
+    const usernameTaken = current.accounts.some(
+      (account) => account.username.toLowerCase() === normalized
+    );
+    if (usernameTaken) {
+      throw new Error("Username already exists");
+    }
+    setState((draft) => {
+      const userId = payload.id || `user-${Date.now()}`;
+      const platformRole = payload.platformRole || "admin";
+      const record = {
+        id: userId,
+        username,
+        name: payload.name || username,
+        role: payload.role || "System User",
+        department: payload.department || "",
+        email: payload.email || "",
+        status: payload.status || "Enabled",
+        platformRole
+      };
+      draft.admin.users.unshift(record);
+      draft.accounts.push({
+        id: `acct-${Date.now()}`,
+        username,
+        password,
+        role: platformRole,
+        displayName: record.name,
+        disabled: record.status !== "Enabled",
+        userId
+      });
+      pushLog(draft, {
+        module: "User",
+        action: "Created user",
+        target: record.name
+      });
+    });
+  },
+
+  updateAdminUser(userId, changes) {
+    const nextUsername = changes.username ? changes.username.trim() : null;
+    if (nextUsername) {
+      const normalized = nextUsername.toLowerCase();
+      const current = getState();
+      const usernameTaken = current.accounts.some((account) => {
+        if (account.userId === userId) return false;
+        return account.username.toLowerCase() === normalized;
+      });
+      if (usernameTaken) {
+        throw new Error("Username already exists");
+      }
+    }
+    setState((draft) => {
+      const user = draft.admin.users.find((item) => item.id === userId);
+      if (!user) return;
+      const account = draft.accounts.find(
+        (item) => item.userId === userId || item.username === user.username
+      );
+      if (nextUsername) {
+        if (account) {
+          account.username = nextUsername;
+        }
+        user.username = nextUsername;
+      }
+      if (changes.name) {
+        user.name = changes.name;
+        if (account) {
+          account.displayName = changes.name;
+        }
+      }
+      if (changes.role) {
+        user.role = changes.role;
+      }
+      if (changes.department !== undefined) {
+        user.department = changes.department;
+      }
+      if (changes.email !== undefined) {
+        user.email = changes.email;
+      }
+      if (changes.status) {
+        user.status = changes.status;
+        if (account) {
+          account.disabled = changes.status !== "Enabled";
+        }
+      }
+      if (changes.platformRole && account) {
+        user.platformRole = changes.platformRole;
+        account.role = changes.platformRole;
+      }
+      pushLog(draft, {
+        module: "User",
+        action: "Updated user",
+        target: user.name
+      });
+    });
+  },
+
+  resetUserPassword(userId) {
+    const newPassword = generatePassword();
+    let updated = false;
+    setState((draft) => {
+      const account = draft.accounts.find((item) => item.userId === userId);
+      if (!account) return;
+      account.password = newPassword;
+      updated = true;
+      pushLog(draft, {
+        module: "User",
+        action: "Reset password",
+        target: account.displayName || account.username
+      });
+    });
+    return updated ? newPassword : null;
+  },
+
+  markHrNotification(id, read = true) {
+    setState((draft) => {
+      const notification = draft.hr.notifications.find((item) => item.id === id);
+      if (notification) {
+        notification.read = read;
+      }
+    });
+  },
+
+  markAllHrNotifications(read = true) {
+    setState((draft) => {
+      draft.hr.notifications.forEach((item) => {
+        item.read = read;
       });
     });
   }

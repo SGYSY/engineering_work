@@ -197,6 +197,8 @@ const dict = new Map([
   ["已导出 ", "Exported "],
   ["附件上传完成", "Attachment uploaded"],
   ["附件已移除", "Attachment removed"],
+  ["仅支持上传PDF文件", "Only PDF files are supported"],
+  ["删除", "Remove"],
   ["已生成在线预览（模拟）", "Preview generated (mock)"],
   ["简历导出任务已创建", "Resume export task created"],
   ["简历已保存，并更新完整度", "Resume saved and completeness updated"],
