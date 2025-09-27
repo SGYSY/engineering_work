@@ -1,4 +1,4 @@
-import { cloneInitialState, initialState } from "../data/mockData.js";
+import { cloneInitialState, roles } from "../data/mockData.js";
 
 const STORAGE_KEY = "career-platform-state";
 
@@ -12,7 +12,7 @@ function createEmptySession() {
   };
 }
 
-let state = hydrateState();
+let state = sanitizeState(hydrateState());
 const listeners = new Set();
 
 function hydrateState() {
@@ -64,7 +64,7 @@ function notify() {
 function setState(updater) {
   const draft = JSON.parse(JSON.stringify(state));
   const result = updater(draft) || draft;
-  state = result;
+  state = sanitizeState(result);
   persist();
   notify();
   return state;
@@ -873,3 +873,157 @@ export function debugState() {
 }
 
 window.__careerStore = { getState, actions, subscribe };
+
+function sanitizeState(snapshot) {
+  const draft = deepClone(snapshot || {});
+  const baseline = cloneInitialState();
+
+  const roleValid =
+    draft.session &&
+    draft.session.role &&
+    roles.some((item) => item.id === draft.session.role);
+  if (!roleValid) {
+    draft.session = createEmptySession();
+  }
+  if (
+    !Array.isArray(draft.accounts) ||
+    !draft.accounts.some((account) => account && account.username && account.role)
+  ) {
+    draft.accounts = baseline.accounts;
+  }
+
+  draft.student = sanitizeStudentSlice(draft.student, baseline.student);
+  draft.teacher = sanitizeTeacherSlice(draft.teacher, baseline.teacher);
+  draft.hr = sanitizeHrSlice(draft.hr, baseline.hr);
+  draft.admin = sanitizeAdminSlice(draft.admin, baseline.admin);
+
+  return draft;
+}
+
+function sanitizeStudentSlice(current = {}, baseline = {}) {
+  const next = { ...deepClone(baseline), ...deepClone(current) };
+  next.jobs = ensureList(current?.jobs, baseline?.jobs, isValidStudentJob);
+  next.applications = ensureList(current?.applications, baseline?.applications, isValidStudentApplication);
+  next.activities = ensureList(current?.activities, baseline?.activities, isValidStudentActivity);
+  next.notifications = ensureList(current?.notifications, baseline?.notifications, isValidNotification);
+  next.resume = sanitizeResume(current?.resume, baseline?.resume);
+  return next;
+}
+
+function sanitizeTeacherSlice(current = {}, baseline = {}) {
+  const next = { ...deepClone(baseline), ...deepClone(current) };
+  next.enterpriseAudit = ensureList(current?.enterpriseAudit, baseline?.enterpriseAudit, isValidEnterpriseAudit);
+  next.activities = ensureList(current?.activities, baseline?.activities, isValidTeacherActivity);
+  next.approvals = ensureList(current?.approvals, baseline?.approvals, isValidTeacherApproval);
+  next.exports = ensureList(current?.exports, baseline?.exports, isValidTeacherExport);
+  next.checkin = deepClone(current?.checkin) || deepClone(baseline?.checkin);
+  if (!next.employmentDashboard) {
+    next.employmentDashboard = deepClone(baseline?.employmentDashboard);
+  }
+  return next;
+}
+
+function sanitizeHrSlice(current = {}, baseline = {}) {
+  const next = { ...deepClone(baseline), ...deepClone(current) };
+  next.jobs = ensureList(current?.jobs, baseline?.jobs, isValidHrJob);
+  next.notifications = ensureList(current?.notifications, baseline?.notifications, isValidNotification);
+  next.candidates = sanitizeHrCandidates(current?.candidates, baseline?.candidates);
+  next.campusEvents = deepClone(current?.campusEvents) || deepClone(baseline?.campusEvents);
+  return next;
+}
+
+function sanitizeAdminSlice(current = {}, baseline = {}) {
+  const next = { ...deepClone(baseline), ...deepClone(current) };
+  next.users = ensureList(current?.users, baseline?.users, isValidAdminUser);
+  next.roles = ensureList(current?.roles, baseline?.roles, isValidAdminRole);
+  next.logs = ensureList(current?.logs, baseline?.logs, isValidAdminLog);
+  return next;
+}
+
+function sanitizeHrCandidates(current = {}, baseline = {}) {
+  const result = { ...deepClone(baseline), ...deepClone(current) };
+  result.list = ensureList(current?.list, baseline?.list, isValidHrCandidate);
+  result.stages = ensureList(current?.stages, baseline?.stages, Boolean);
+  result.templates = ensureList(current?.templates, baseline?.templates, Boolean);
+  return result;
+}
+
+function ensureList(currentList, fallbackList, predicate) {
+  const currentValid = Array.isArray(currentList) ? currentList.filter(predicate) : [];
+  if (currentValid.length) {
+    return currentValid.map(deepClone);
+  }
+  const fallbackValid = Array.isArray(fallbackList) ? fallbackList.filter(predicate) : [];
+  return fallbackValid.map(deepClone);
+}
+
+function sanitizeResume(current, baseline) {
+  if (!current || typeof current !== "object") {
+    return deepClone(baseline);
+  }
+  const next = deepClone(current);
+  next.attachments = ensureList(current.attachments, baseline?.attachments, isValidResumeAttachment);
+  next.steps = Array.isArray(current.steps) && current.steps.length ? deepClone(current.steps) : deepClone(baseline?.steps);
+  return next;
+}
+
+function isValidStudentJob(item) {
+  return Boolean(item && item.id && item.title && item.company && item.city);
+}
+
+function isValidStudentApplication(item) {
+  return Boolean(item && item.id && item.jobTitle && item.company);
+}
+
+function isValidStudentActivity(item) {
+  return Boolean(item && item.id && item.title && item.date && item.location);
+}
+
+function isValidNotification(item) {
+  return Boolean(item && item.id && item.title && item.category);
+}
+
+function isValidEnterpriseAudit(item) {
+  return Boolean(item && item.id && item.company);
+}
+
+function isValidTeacherActivity(item) {
+  return Boolean(item && item.id && item.title && item.date && item.location);
+}
+
+function isValidTeacherApproval(item) {
+  return Boolean(item && item.id && item.company && item.type);
+}
+
+function isValidTeacherExport(item) {
+  return Boolean(item && item.id && item.label);
+}
+
+function isValidHrJob(item) {
+  return Boolean(item && item.id && item.title && item.type && item.city);
+}
+
+function isValidHrCandidate(item) {
+  return Boolean(item && item.id && item.name && item.job);
+}
+
+function isValidResumeAttachment(item) {
+  return Boolean(item && item.id && item.name);
+}
+
+function isValidAdminUser(item) {
+  return Boolean(item && item.id && item.username && item.name && item.role);
+}
+
+function isValidAdminRole(item) {
+  return Boolean(item && item && item.id && item.name);
+}
+
+function isValidAdminLog(item) {
+  return Boolean(item && item.id && item.actor && item.module && item.time);
+}
+
+function deepClone(value) {
+  if (value === undefined) return undefined;
+  return JSON.parse(JSON.stringify(value));
+}

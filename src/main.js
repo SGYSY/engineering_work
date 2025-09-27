@@ -18,6 +18,7 @@ import { renderAdminOperationLog } from "./views/admin/operationLog.js";
 import { renderAdminTeacherPanel } from "./views/admin/teacherPanel.js";
 import { renderAdminHrPanel } from "./views/admin/hrPanel.js";
 import { mountToaster } from "./components/toast.js";
+import { renderDemoGuide } from "./components/demoGuide.js";
 import { renderLogin } from "./views/auth/login.js";
 
 const roleNav = document.getElementById("role-nav");
@@ -122,11 +123,20 @@ function renderRoute(session) {
   appRoot.innerHTML = "";
   if (typeof render === "function") {
     const view = render({ state: currentState, actions, param, navigate, toaster });
-    if (view instanceof HTMLElement) {
-      appRoot.appendChild(view);
-    } else if (typeof view === "string") {
-      appRoot.innerHTML = view;
+    const wrapper = document.createElement("div");
+    wrapper.className = "view-shell";
+    const guide = renderDemoGuide(roleId, viewId);
+    if (guide) {
+      wrapper.appendChild(guide);
     }
+    if (view instanceof HTMLElement) {
+      wrapper.appendChild(view);
+    } else if (typeof view === "string") {
+      const container = document.createElement("div");
+      container.innerHTML = view;
+      wrapper.appendChild(container);
+    }
+    appRoot.appendChild(wrapper);
   }
   lastRouteKey = key;
 }
@@ -163,6 +173,13 @@ function renderApp() {
     return;
   }
 
+  const roleExists = roles.some((item) => item.id === session.role);
+  if (!roleExists) {
+    actions.logout();
+    window.location.hash = "";
+    toaster.show(t("Session reset for demo"), { type: "info" });
+    return;
+  }
   activeRoleId = session.role;
   buildRoleNav(session.role);
   sectionNav.style.display = "flex";
@@ -176,7 +193,7 @@ function renderApp() {
   const role = roles.find((item) => item.id === session.role) || roles[0];
   const defaultView = role.routes[0]?.id;
   if (!window.location.hash || !window.location.hash.startsWith(`#${session.role}/`)) {
-    window.location.hash = `#${session.role}/${defaultView}`;
+    window.location.hash = `#${role.id}/${defaultView}`;
   }
   renderRoute(session);
 }

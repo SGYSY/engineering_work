@@ -208,7 +208,19 @@ const dict = new Map([
   ["全部通知已标记为已读", "All notifications marked as read"],
   ["已订阅最新投递与活动通知", "Subscribed to latest application and activity notifications"],
 
-  // Status translations used in data
+    ["My Applications", "My Applications"],
+  ["Review application history, sync statuses, and leave supporting notes.", "Review application history, sync statuses, and leave supporting notes."],
+  ["Export Records", "Export Records"],
+  ["Sync Latest Status", "Sync Latest Status"],
+  ["Simulate HR Update", "Simulate HR Update"],
+  ["Application export generated (mock)", "Application export generated (mock)"],
+  ["Statuses synced. Timeline reflects the latest update.", "Statuses synced. Timeline reflects the latest update."],
+  ["Simulated offer generated for the highlighted application.", "Simulated offer generated for the highlighted application."],
+  ["All demo applications already show offer status.", "All demo applications already show offer status."],
+  ["Offer", "Offer"],
+  ["Offer letter delivered via campus platform", "Offer letter delivered via campus platform"],
+  ["Session reset for demo", "Session reset for demo"],
+// Status translations used in data
   ["投递成功", "Submitted"],
   ["简历已阅", "Resume Reviewed"],
   ["面试邀约", "Interview Invite"],

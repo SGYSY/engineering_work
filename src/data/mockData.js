@@ -38,6 +38,20 @@ export const roles = [
       { id: "teacher-admin", label: "Teacher Admin" },
       { id: "hr-admin", label: "HR Admin" }
     ]
+  },
+  {
+    id: "notify004",
+    category: "Resume Center",
+    title: "Portfolio feedback available",
+    time: "2025-02-22 15:20",
+    read: false
+  },
+  {
+    id: "notify005",
+    category: "Activity Reminder",
+    title: "Counselor shared interview prep tips",
+    time: "2025-02-23 08:30",
+    read: false
   }
 ];
 
@@ -61,6 +75,15 @@ const accounts = [
     userId: "user002"
   },
   {
+    id: "acct-hr2",
+    username: "hr2",
+    password: "hr456",
+    role: "hr",
+    displayName: "Liu (Campus HR)",
+    disabled: false,
+    userId: "user005"
+  },
+  {
     id: "acct-teacher",
     username: "teacher",
     password: "teacher123",
@@ -77,6 +100,20 @@ const accounts = [
     displayName: "Admin Li",
     disabled: false,
     userId: "user003"
+  },
+  {
+    id: "notify004",
+    category: "Resume Center",
+    title: "Portfolio feedback available",
+    time: "2025-02-22 15:20",
+    read: false
+  },
+  {
+    id: "notify005",
+    category: "Activity Reminder",
+    title: "Counselor shared interview prep tips",
+    time: "2025-02-23 08:30",
+    read: false
   }
 ];
 
@@ -140,6 +177,60 @@ const studentJobs = [
       "Excellent cross-team communication"
     ],
     favorite: false
+  },
+  {
+    id: "job004",
+    title: "Career Services Product Manager",
+    company: "ByteDance Education",
+    industry: "Information Technology",
+    city: "Shanghai",
+    salary: "22k-30k",
+    education: "Bachelor",
+    deadline: "2025-05-10",
+    publishDate: "2025-02-18",
+    tags: ["Product", "User Research", "Data Insights"],
+    description:
+      "Design features for university employment platforms, collaborate with counselors, and drive data-informed iterations.",
+    requirements: [
+      "3+ internship experiences in product or operations",
+      "Ability to translate qualitative feedback into product requirements",
+      "Comfortable presenting roadmaps to stakeholders"
+    ],
+    favorite: false
+  },
+  {
+    id: "job005",
+    title: "Employment Data Visualization Engineer",
+    company: "JD Smart Campus",
+    industry: "Big Data",
+    city: "Nanjing",
+    salary: "15k-22k",
+    education: "Bachelor",
+    deadline: "2025-05-30",
+    publishDate: "2025-02-20",
+    tags: ["ECharts", "Dashboard", "Storytelling"],
+    description:
+      "Build dashboards that tell the story of student employment outcomes across provinces and majors.",
+    requirements: [
+      "Proficient with at least one visualization library",
+      "Experience working with large datasets and REST APIs",
+      "A portfolio demonstrating interaction design sense"
+    ],
+    favorite: false
+  },
+  {
+    id: "notify004",
+    category: "Resume Center",
+    title: "Portfolio feedback available",
+    time: "2025-02-22 15:20",
+    read: false
+  },
+  {
+    id: "notify005",
+    category: "Activity Reminder",
+    title: "Counselor shared interview prep tips",
+    time: "2025-02-23 08:30",
+    read: false
   }
 ];
 
@@ -178,6 +269,20 @@ const studentApplications = [
     ],
     messages: [],
     attachments: []
+  },
+  {
+    id: "notify004",
+    category: "Resume Center",
+    title: "Portfolio feedback available",
+    time: "2025-02-22 15:20",
+    read: false
+  },
+  {
+    id: "notify005",
+    category: "Activity Reminder",
+    title: "Counselor shared interview prep tips",
+    time: "2025-02-23 08:30",
+    read: false
   }
 ];
 
@@ -258,6 +363,20 @@ const studentActivities = [
     status: "Open",
     guide: "Submit the online form in advance and present the QR code onsite.",
     linkedTeacherId: "teach-act-1"
+  },
+  {
+    id: "notify004",
+    category: "Resume Center",
+    title: "Portfolio feedback available",
+    time: "2025-02-22 15:20",
+    read: false
+  },
+  {
+    id: "notify005",
+    category: "Activity Reminder",
+    title: "Counselor shared interview prep tips",
+    time: "2025-02-23 08:30",
+    read: false
   }
 ];
 
@@ -281,6 +400,20 @@ const studentNotifications = [
     category: "Activity Reminder",
     title: "South China Tech Fair closing soon",
     time: "2025-02-20 09:00",
+    read: false
+  },
+  {
+    id: "notify004",
+    category: "Resume Center",
+    title: "Portfolio feedback available",
+    time: "2025-02-22 15:20",
+    read: false
+  },
+  {
+    id: "notify005",
+    category: "Activity Reminder",
+    title: "Counselor shared interview prep tips",
+    time: "2025-02-23 08:30",
     read: false
   }
 ];
@@ -315,6 +448,20 @@ const hrJobs = [
     deadline: "2025-04-15",
     description:
       "Assist the talent analytics team to prepare dashboards, clean datasets, and prepare interview packs for enterprises."
+  },
+  {
+    id: "notify004",
+    category: "Resume Center",
+    title: "Portfolio feedback available",
+    time: "2025-02-22 15:20",
+    read: false
+  },
+  {
+    id: "notify005",
+    category: "Activity Reminder",
+    title: "Counselor shared interview prep tips",
+    time: "2025-02-23 08:30",
+    read: false
   }
 ];
 
@@ -363,6 +510,20 @@ const hrNotifications = [
     category: "Application",
     title: "Alex Zhang submitted Frontend Engineer resume",
     time: "2025-02-15 10:20",
+    read: false
+  },
+  {
+    id: "notify004",
+    category: "Resume Center",
+    title: "Portfolio feedback available",
+    time: "2025-02-22 15:20",
+    read: false
+  },
+  {
+    id: "notify005",
+    category: "Activity Reminder",
+    title: "Counselor shared interview prep tips",
+    time: "2025-02-23 08:30",
     read: false
   }
 ];
@@ -416,6 +577,20 @@ const teacherActivities = [
     registered: 40,
     status: "Approved",
     linkedActivityId: null
+  },
+  {
+    id: "notify004",
+    category: "Resume Center",
+    title: "Portfolio feedback available",
+    time: "2025-02-22 15:20",
+    read: false
+  },
+  {
+    id: "notify005",
+    category: "Activity Reminder",
+    title: "Counselor shared interview prep tips",
+    time: "2025-02-23 08:30",
+    read: false
   }
 ];
 
@@ -428,6 +603,20 @@ const teacherApprovals = [
     boothNeed: "Double booth",
     status: "Pending",
     linkedFormId: "approval-1"
+  },
+  {
+    id: "notify004",
+    category: "Resume Center",
+    title: "Portfolio feedback available",
+    time: "2025-02-22 15:20",
+    read: false
+  },
+  {
+    id: "notify005",
+    category: "Activity Reminder",
+    title: "Counselor shared interview prep tips",
+    time: "2025-02-23 08:30",
+    read: false
   }
 ];
 
@@ -436,6 +625,20 @@ const teacherExports = [
     id: "export-1",
     label: "Export career fair signups",
     fileName: "2025_spring_fair.xlsx"
+  },
+  {
+    id: "notify004",
+    category: "Resume Center",
+    title: "Portfolio feedback available",
+    time: "2025-02-22 15:20",
+    read: false
+  },
+  {
+    id: "notify005",
+    category: "Activity Reminder",
+    title: "Counselor shared interview prep tips",
+    time: "2025-02-23 08:30",
+    read: false
   }
 ];
 
@@ -554,6 +757,20 @@ const employmentRecords = [
     industry: "New Energy",
     category: "Data Analytics",
     region: "Hangzhou"
+  },
+  {
+    id: "notify004",
+    category: "Resume Center",
+    title: "Portfolio feedback available",
+    time: "2025-02-22 15:20",
+    read: false
+  },
+  {
+    id: "notify005",
+    category: "Activity Reminder",
+    title: "Counselor shared interview prep tips",
+    time: "2025-02-23 08:30",
+    read: false
   }
 ];
 
@@ -607,6 +824,20 @@ const enterpriseAudit = [
     status: "Rejected",
     history: [{ date: "2024-05-18", result: "Rejected" }],
     blacklist: true
+  },
+  {
+    id: "notify004",
+    category: "Resume Center",
+    title: "Portfolio feedback available",
+    time: "2025-02-22 15:20",
+    read: false
+  },
+  {
+    id: "notify005",
+    category: "Activity Reminder",
+    title: "Counselor shared interview prep tips",
+    time: "2025-02-23 08:30",
+    read: false
   }
 ];
 
@@ -632,6 +863,16 @@ const adminUsers = [
     status: "Enabled"
   },
   {
+    id: "user005",
+    username: "hr2",
+    platformRole: "hr",
+    name: "Liu (Campus HR)",
+    role: "Enterprise HR",
+    department: "Sunrise Robotics",
+    email: "liu.hr@sunrise.com",
+    status: "Enabled"
+  },
+  {
     id: "user003",
     username: "admin",
     platformRole: "admin",
@@ -640,6 +881,20 @@ const adminUsers = [
     department: "Career Center",
     email: "admin@career.edu",
     status: "Disabled"
+  },
+  {
+    id: "notify004",
+    category: "Resume Center",
+    title: "Portfolio feedback available",
+    time: "2025-02-22 15:20",
+    read: false
+  },
+  {
+    id: "notify005",
+    category: "Activity Reminder",
+    title: "Counselor shared interview prep tips",
+    time: "2025-02-23 08:30",
+    read: false
   }
 ];
 
@@ -668,6 +923,20 @@ const adminLogs = [
     target: "Frontend Engineer",
     time: "2025-02-12 14:10",
     ip: "10.2.19.21"
+  },
+  {
+    id: "notify004",
+    category: "Resume Center",
+    title: "Portfolio feedback available",
+    time: "2025-02-22 15:20",
+    read: false
+  },
+  {
+    id: "notify005",
+    category: "Activity Reminder",
+    title: "Counselor shared interview prep tips",
+    time: "2025-02-23 08:30",
+    read: false
   }
 ];
 

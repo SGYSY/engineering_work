@@ -1,5 +1,7 @@
 export function renderTeacherEnterpriseAudit({ state, actions, toaster }) {
-  const enterprises = state.teacher.enterpriseAudit;
+  const enterprises = Array.isArray(state.teacher?.enterpriseAudit)
+    ? state.teacher.enterpriseAudit
+    : [];
 
   const container = document.createElement("div");
   const header = document.createElement("div");
@@ -22,18 +24,32 @@ export function renderTeacherEnterpriseAudit({ state, actions, toaster }) {
 
   function renderList() {
     list.innerHTML = "";
+    if (!enterprises.length) {
+      const empty = document.createElement("div");
+      empty.className = "empty-state";
+      empty.textContent = "No enterprise reviews available.";
+      list.appendChild(empty);
+      return;
+    }
+
     enterprises.forEach((company) => {
+      if (!company) return;
+      const materials = Array.isArray(company.materials) ? company.materials : [];
+      const history = Array.isArray(company.history) ? company.history : [];
+
       const card = document.createElement("section");
       card.className = "card";
       card.dataset.id = company.id;
       card.innerHTML = `
         <div class="page-header" style="margin-bottom:12px;">
           <div>
-            <h3 class="section-title" style="margin-bottom:4px;">${company.company}</h3>
-            <div style="color: var(--text-light); font-size:12px;">Submitted on ${company.submitAt}</div>
+            <h3 class="section-title" style="margin-bottom:4px;">${company.company || "-"}</h3>
+            <div style="color: var(--text-light); font-size:12px;">Submitted on ${company.submitAt || "-"}</div>
           </div>
           <div class="table-actions">
-            <button class="button button--ghost button--sm" data-action="mark">${company.blacklist ? "Remove from blacklist" : "Add to blacklist"}</button>
+            <button class="button button--ghost button--sm" data-action="mark">${
+              company.blacklist ? "Remove from blacklist" : "Add to blacklist"
+            }</button>
             <button class="button button--outline button--sm" data-action="reject">Reject</button>
             <button class="button button--sm" data-action="approve">Approve</button>
           </div>
@@ -42,19 +58,21 @@ export function renderTeacherEnterpriseAudit({ state, actions, toaster }) {
           <div style="flex:1; min-width:240px;">
             <div style="font-weight:600; margin-bottom:8px;">Submitted materials</div>
             <ul style="color:#3a4f72; display:grid; gap:6px;">
-              ${company.materials.map((file) => `<li>• ${file}</li>`).join("")}
+              ${materials.map((file) => `<li>• ${file}</li>`).join("")}
             </ul>
           </div>
           <div style="flex:1; min-width:220px;">
             <div style="font-weight:600; margin-bottom:8px;">History</div>
             <ul style="color:#3a4f72; display:grid; gap:6px;">
-              ${company.history.map((record) => `<li>${record.date} · ${record.result}</li>`).join("")}
+              ${history.map((record) => `<li>${record?.date || "-"} · ${record?.result || "-"}</li>`).join("")}
             </ul>
           </div>
           <div style="min-width:160px;">
             <div style="font-weight:600; margin-bottom:8px;">List tag</div>
-            <span class="badge ${company.blacklist ? "" : "badge--success"}">${company.blacklist ? "Blacklist" : "Whitelist"}</span>
-            <div style="color: var(--text-light); font-size:12px; margin-top:10px;">Status: ${company.status}</div>
+            <span class="badge ${company.blacklist ? "" : "badge--success"}">${
+              company.blacklist ? "Blacklist" : "Whitelist"
+            }</span>
+            <div style="color: var(--text-light); font-size:12px; margin-top:10px;">Status: ${company.status || "Pending"}</div>
           </div>
         </div>
       `;

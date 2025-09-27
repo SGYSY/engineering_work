@@ -7,7 +7,7 @@ function getRoleLabel(roleId) {
 export function renderLogin({ state, actions, toaster }) {
   const accounts = state.accounts || [];
   const visibleRoles = Array.from(
-    new Set(accounts.map((account) => account.role))
+    new Set(accounts.map((account) => account.role).filter(Boolean))
   ).map((roleId) => ({ id: roleId, label: getRoleLabel(roleId) }));
 
   const container = document.createElement("div");
@@ -158,18 +158,30 @@ export function renderLogin({ state, actions, toaster }) {
   }
 
   if (visibleRoles.length) {
-    renderHelper(roleSelect.value);
-    const firstAccount = accounts.find((account) => account.role === roleSelect.value);
-    if (firstAccount) {
-      usernameInput.value = firstAccount.username;
+    const initialRole = roleSelect.options[0]?.value || roleSelect.value;
+    if (initialRole) {
+      roleSelect.value = initialRole;
+      renderHelper(initialRole);
+      const firstAccount = accounts.find((account) => account.role === initialRole);
+      if (firstAccount) {
+        usernameInput.value = firstAccount.username;
+        passwordInput.value = firstAccount.password || "";
+      }
     }
+  } else {
+    roleSelect.disabled = true;
+    helperList.innerHTML = "";
+    const empty = document.createElement("div");
+    empty.style.color = "var(--text-light)";
+    empty.textContent = "No demo accounts available.";
+    helperList.appendChild(empty);
   }
 
   roleSelect.addEventListener("change", () => {
     const roleId = roleSelect.value;
     const firstAccount = accounts.find((account) => account.role === roleId);
     usernameInput.value = firstAccount?.username || "";
-    passwordInput.value = "";
+    passwordInput.value = firstAccount?.password || "";
     renderHelper(roleId);
   });
 

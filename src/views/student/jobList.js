@@ -3,7 +3,7 @@ import { t } from "../../utils/i18n.js";
 
 export function renderStudentJobList({ state, actions, navigate, toaster }) {
   const container = document.createElement("div");
-  const jobs = state.student.jobs;
+  const jobs = Array.isArray(state.student?.jobs) ? state.student.jobs : [];
 
   const header = document.createElement("div");
   header.className = "page-header";
@@ -25,10 +25,10 @@ export function renderStudentJobList({ state, actions, navigate, toaster }) {
   const keywordInput = createInput(t("关键字搜索（岗位/公司/标签）"));
   filterBar.appendChild(keywordInput);
 
-  const industrySelect = createSelect(t("行业"), jobFilters.industries);
-  const citySelect = createSelect(t("城市"), jobFilters.cities);
-  const salarySelect = createSelect(t("薪资"), jobFilters.salaries);
-  const eduSelect = createSelect(t("学历"), jobFilters.education);
+  const industrySelect = createSelect(t("行业"), jobFilters?.industries || []);
+  const citySelect = createSelect(t("城市"), jobFilters?.cities || []);
+  const salarySelect = createSelect(t("薪资"), jobFilters?.salaries || []);
+  const eduSelect = createSelect(t("学历"), jobFilters?.education || []);
 
   [industrySelect, citySelect, salarySelect, eduSelect].forEach((select) => filterBar.appendChild(select));
 
@@ -51,8 +51,12 @@ export function renderStudentJobList({ state, actions, navigate, toaster }) {
     const education = eduSelect.querySelector("select").value;
 
     const results = jobs.filter((job) => {
+      if (!job) return false;
+      const title = job.title || "";
+      const company = job.company || "";
+      const tags = Array.isArray(job.tags) ? job.tags : [];
       const matchKeyword = query
-        ? job.title.includes(query) || job.company.includes(query) || job.tags.some((tag) => tag.includes(query))
+        ? title.includes(query) || company.includes(query) || tags.some((tag) => (tag || "").includes(query))
         : true;
       const matchIndustry = industry ? job.industry === industry : true;
       const matchCity = city ? job.city === city : true;
@@ -60,6 +64,7 @@ export function renderStudentJobList({ state, actions, navigate, toaster }) {
       const matchEducation = education ? job.education === education : true;
       return matchKeyword && matchIndustry && matchCity && matchSalary && matchEducation;
     });
+
     renderList(results);
   }
 
@@ -68,38 +73,38 @@ export function renderStudentJobList({ state, actions, navigate, toaster }) {
     if (!list.length) {
       const empty = document.createElement("div");
       empty.className = "empty-state";
-  empty.textContent = t("暂无匹配岗位");
+      empty.textContent = t("暂无匹配岗位");
       listWrapper.appendChild(empty);
       return;
     }
 
     list.forEach((job) => {
+      if (!job) return;
+      const tags = Array.isArray(job.tags) ? job.tags : [];
       const jobCard = document.createElement("article");
       jobCard.className = "job-card";
       jobCard.innerHTML = `
         <div class="job-card__header">
           <div>
-            <h3 style="font-size:18px; font-weight:600; margin-bottom:6px;">${job.title}</h3>
+            <h3 style="font-size:18px; font-weight:600; margin-bottom:6px;">${job.title || "-"}</h3>
             <div class="job-card__meta">
-              <span>${job.company}</span>
-              <span>${job.city}</span>
-              <span>${job.salary}</span>
-              <span>${job.education}${t("及以上")}</span>
-              <span>${t("截止")}: ${job.deadline}</span>
+              <span>${job.company || "-"}</span>
+              <span>${job.city || "-"}</span>
+              <span>${job.salary || "-"}</span>
+              <span>${job.education ? `${job.education}${t("及以上")}` : ""}</span>
+              <span>${t("截止")}: ${job.deadline || "-"}</span>
             </div>
           </div>
           <div class="job-card__actions">
-            <button class="button ${job.favorite ? "button--ghost" : "button--outline"}" data-action="favorite" data-id="${job.id}">${
-        t(job.favorite ? "已收藏" : "收藏")
-      }</button>
+            <button class="button ${job.favorite ? "button--ghost" : "button--outline"}" data-action="favorite" data-id="${job.id}">${t(job.favorite ? "已收藏" : "收藏")}</button>
             <button class="button" data-action="apply" data-id="${job.id}">${t("一键投递")}</button>
             <button class="button button--ghost" data-action="detail" data-id="${job.id}">${t("查看详情")}</button>
           </div>
         </div>
         <div class="chips">
-          ${job.tags.map((tag) => `<span class="chip">${tag}</span>`).join("")}
+          ${tags.map((tag) => `<span class="chip">${tag}</span>`).join("")}
         </div>
-        <p style="color: var(--text-light); line-height:1.6;">${job.description}</p>
+        <p style="color: var(--text-light); line-height:1.6;">${job.description || ""}</p>
       `;
       listWrapper.appendChild(jobCard);
     });
@@ -119,13 +124,13 @@ export function renderStudentJobList({ state, actions, navigate, toaster }) {
 
     if (action === "favorite") {
       actions.toggleJobFavorite(jobId);
-  toaster.show(t("收藏状态已更新"), { type: "info" });
+      toaster.show(t("收藏状态已更新"), { type: "info" });
       return;
     }
 
     if (action === "apply") {
       actions.applyForJob(jobId);
-  toaster.show(t("投递成功，已同步至我的投递"), { type: "success" });
+      toaster.show(t("投递成功，已同步至我的投递"), { type: "success" });
       return;
     }
   });
@@ -146,12 +151,12 @@ export function renderStudentJobList({ state, actions, navigate, toaster }) {
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
     if (target.dataset.action === "recommend") {
-  keywordInput.value = "frontend";
+      keywordInput.value = "frontend";
       applyFilters();
-  toaster.show(t("已根据偏好生成推荐结果"), { type: "info" });
+      toaster.show(t("已根据偏好生成推荐结果"), { type: "info" });
     }
     if (target.dataset.action === "save-filter") {
-  toaster.show(t("筛选已保存，下次将自动加载"), { type: "success" });
+      toaster.show(t("筛选已保存，下次将自动加载"), { type: "success" });
     }
   });
 
@@ -160,8 +165,12 @@ export function renderStudentJobList({ state, actions, navigate, toaster }) {
 }
 
 function salaryMatch(jobSalary, filterValue) {
-  const normalizedJob = jobSalary.toLowerCase();
-  const normalizedFilter = filterValue.toLowerCase();
+  const jobValue = typeof jobSalary === "string" ? jobSalary : "";
+  const filter = typeof filterValue === "string" ? filterValue : "";
+  if (!jobValue && !filter) return true;
+  if (!jobValue) return false;
+  const normalizedJob = jobValue.toLowerCase();
+  const normalizedFilter = filter.toLowerCase();
 
   const jobIsDaily = normalizedJob.includes("/day") || normalizedJob.includes("daily");
   const filterIsDaily = normalizedFilter.includes("/day") || normalizedFilter.includes("daily");
@@ -207,7 +216,7 @@ function createSelect(label, options) {
   wrapper.style.fontSize = "12px";
   wrapper.style.color = "var(--text-light)";
   const select = document.createElement("select");
-  select.innerHTML = `<option value="">${label}</option>` + options.map((opt) => `<option value="${opt}">${opt}</option>`).join("");
+  select.innerHTML = `<option value="">${label}</option>` + (options || []).map((opt) => `<option value="${opt}">${opt}</option>`).join("");
   wrapper.appendChild(select);
   return wrapper;
 }
