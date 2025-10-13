@@ -9,12 +9,12 @@ export function renderStudentJobList({ state, actions, navigate, toaster }) {
   header.className = "page-header";
   header.innerHTML = `
     <div>
-      <h2 class="section-title" style="margin-bottom:6px;">${t("职位列表")}</h2>
-      <p style="color: var(--text-light); font-size: 13px;">${t("筛选行业、城市、薪资与学历，快速找到匹配岗位；支持收藏与一键投递。")}</p>
+      <h2 class="section-title" style="margin-bottom:6px;">${t("Job List")}</h2>
+      <p style="color: var(--text-light); font-size: 13px;">${t("Filter by industry, city, salary, and education to quickly find matching roles. Save favourites or apply in one click.")}</p>
     </div>
     <div class="table-actions">
-      <button class="button button--outline" data-action="recommend">${t("智能推荐")}</button>
-      <button class="button" data-action="save-filter">${t("保存筛选")}</button>
+      <button class="button button--outline" data-action="recommend">${t("Smart Suggestions")}</button>
+      <button class="button" data-action="save-filter">${t("Save Filter")}</button>
     </div>
   `;
   container.appendChild(header);
@@ -22,19 +22,19 @@ export function renderStudentJobList({ state, actions, navigate, toaster }) {
   const filterBar = document.createElement("div");
   filterBar.className = "filter-bar";
 
-  const keywordInput = createInput(t("关键字搜索（岗位/公司/标签）"));
+  const keywordInput = createInput(t("Keyword search (role/company/tag)"));
   filterBar.appendChild(keywordInput);
 
-  const industrySelect = createSelect(t("行业"), jobFilters?.industries || []);
-  const citySelect = createSelect(t("城市"), jobFilters?.cities || []);
-  const salarySelect = createSelect(t("薪资"), jobFilters?.salaries || []);
-  const eduSelect = createSelect(t("学历"), jobFilters?.education || []);
+  const industrySelect = createSelect(t("Industry"), jobFilters?.industries || []);
+  const citySelect = createSelect(t("City"), jobFilters?.cities || []);
+  const salarySelect = createSelect(t("Salary"), jobFilters?.salaries || []);
+  const eduSelect = createSelect(t("Education"), jobFilters?.education || []);
 
   [industrySelect, citySelect, salarySelect, eduSelect].forEach((select) => filterBar.appendChild(select));
 
   const resetButton = document.createElement("button");
   resetButton.className = "button button--ghost";
-  resetButton.textContent = t("重置");
+  resetButton.textContent = t("Reset");
   filterBar.appendChild(resetButton);
 
   container.appendChild(filterBar);
@@ -73,7 +73,7 @@ export function renderStudentJobList({ state, actions, navigate, toaster }) {
     if (!list.length) {
       const empty = document.createElement("div");
       empty.className = "empty-state";
-      empty.textContent = t("暂无匹配岗位");
+      empty.textContent = t("No matching roles found");
       listWrapper.appendChild(empty);
       return;
     }
@@ -91,14 +91,14 @@ export function renderStudentJobList({ state, actions, navigate, toaster }) {
               <span>${job.company || "-"}</span>
               <span>${job.city || "-"}</span>
               <span>${job.salary || "-"}</span>
-              <span>${job.education ? `${job.education}${t("及以上")}` : ""}</span>
-              <span>${t("截止")}: ${job.deadline || "-"}</span>
-            </div>
-          </div>
-          <div class="job-card__actions">
-            <button class="button ${job.favorite ? "button--ghost" : "button--outline"}" data-action="favorite" data-id="${job.id}">${t(job.favorite ? "已收藏" : "收藏")}</button>
-            <button class="button" data-action="apply" data-id="${job.id}">${t("一键投递")}</button>
-            <button class="button button--ghost" data-action="detail" data-id="${job.id}">${t("查看详情")}</button>
+              <span>${job.education ? `${job.education} ${t("or above")}` : ""}</span>
+              <span>${t("Deadline")}: ${job.deadline || "-"}</span>
+        </div>
+      </div>
+      <div class="job-card__actions">
+        <button class="button ${job.favorite ? "button--ghost" : "button--outline"}" data-action="favorite" data-id="${job.id}">${t(job.favorite ? "Favorited" : "Favorite")}</button>
+        <button class="button" data-action="apply" data-id="${job.id}">${t("Quick Apply")}</button>
+        <button class="button button--ghost" data-action="detail" data-id="${job.id}">${t("View Details")}</button>
           </div>
         </div>
         <div class="chips">
@@ -124,13 +124,13 @@ export function renderStudentJobList({ state, actions, navigate, toaster }) {
 
     if (action === "favorite") {
       actions.toggleJobFavorite(jobId);
-      toaster.show(t("收藏状态已更新"), { type: "info" });
+      toaster.show(t("Favorite status updated"), { type: "info" });
       return;
     }
 
     if (action === "apply") {
       actions.applyForJob(jobId);
-      toaster.show(t("投递成功，已同步至我的投递"), { type: "success" });
+      toaster.show(t("Application submitted and synced to My Applications"), { type: "success" });
       return;
     }
   });
@@ -153,10 +153,10 @@ export function renderStudentJobList({ state, actions, navigate, toaster }) {
     if (target.dataset.action === "recommend") {
       keywordInput.value = "frontend";
       applyFilters();
-      toaster.show(t("已根据偏好生成推荐结果"), { type: "info" });
+      toaster.show(t("Recommendations generated based on your preference"), { type: "info" });
     }
     if (target.dataset.action === "save-filter") {
-      toaster.show(t("筛选已保存，下次将自动加载"), { type: "success" });
+      toaster.show(t("Selected filters saved for your next visit"), { type: "success" });
     }
   });
 

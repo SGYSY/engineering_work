@@ -1,75 +1,73 @@
-# 前端登录凭据
+# Front-End Login Credentials
 
-本文档包含了 engineering_work 前端项目中所有用户角色的登录信息，用于开发和测试目的。
+This document lists the default login accounts used by the `engineering_work` front-end project for development and testing.
 
-## 系统概述
+## Platform Overview
 
-这是一个校园就业平台系统，支持四种不同身份的用户登录，每种角色都有不同的功能权限。
+The university employment platform supports four user personas. Each role signs in with a dedicated account and receives a tailored feature set within the UI.
 
-## 登录账户信息
+## Account Directory
 
-### 1. 学生账户 (Student)
-- **用户名**: `student`
-- **密码**: `student123`
-- **显示名称**: Alex Zhang
-- **角色权限**:
-  - 职位列表浏览
-  - 职位详情查看
-  - 简历投递和管理
-  - 个人申请记录
-  - 校园活动参与
-  - 系统通知接收
+### 1. Student
+- **Username**: `student`  
+- **Password**: `student123`  
+- **Display name**: Alex Zhang  
+- **Permissions**:
+  - Browse job listings and view job details
+  - Submit and manage resumes
+  - Track personal application history
+  - Register for campus activities
+  - Receive system notifications
 
-### 2. HR账户 (Human Resources)
-- **用户名**: `hr`
-- **密码**: `hr123`
-- **显示名称**: Wang (HR)
-- **角色权限**:
-  - 职位发布和管理
-  - 候选人筛选和管理
-  - 校园招聘活动组织
-  - 简历审核和面试安排
+### 2. Human Resources
+- **Username**: `hr`  
+- **Password**: `hr123`  
+- **Display name**: Wang (HR)  
+- **Permissions**:
+  - Publish and manage job postings
+  - Review and shortlist candidates
+  - Organise campus recruiting events
+  - Review resumes and schedule interviews
 
-### 3. 教师账户 (Teacher)
-- **用户名**: `teacher`
-- **密码**: `teacher123`
-- **显示名称**: Professor Zhang
-- **角色权限**:
-  - 校园活动审核和管理
-  - 学生就业数据分析
-  - 企业准入资质审核
-  - 就业指导服务
+### 3. Teacher
+- **Username**: `teacher`  
+- **Password**: `teacher123`  
+- **Display name**: Professor Zhang  
+- **Permissions**:
+  - Review and manage campus activities
+  - Analyse student employment dashboards
+  - Audit enterprise qualification submissions
+  - Provide employment guidance services
 
-### 4. 管理员账户 (Administrator)
-- **用户名**: `admin`
-- **密码**: `admin123`
-- **显示名称**: Admin Li
-- **角色权限**:
-  - 用户角色和权限管理
-  - 系统操作日志查看
-  - 教师账户管理
-  - HR账户管理
-  - 系统全局配置
+### 4. Administrator
+- **Username**: `admin`  
+- **Password**: `admin123`  
+- **Display name**: Admin Li  
+- **Permissions**:
+  - Manage users, roles, and permissions
+  - Inspect system operation logs
+  - Manage teacher and HR accounts
+  - Configure global system settings
 
-## 快速登录指南
+## Quick Login Steps
 
-1. 访问系统登录页面
-2. 在"登录角色"下拉框中选择对应的角色
-3. 输入对应的用户名和密码
-4. 点击"登录"按钮
+1. Open the platform login page.  
+2. Select the desired role from the **Login Role** dropdown.  
+3. Enter the corresponding username and password.  
+4. Click **Log In**.
 
-## 注意事项
+## Security Notes
 
-⚠️ **重要提醒**:
-- 这些是开发/测试环境的默认账户
-- 生产环境中请务必更改所有默认密码
-- 建议为每个角色设置强密码策略
-- 定期更新和轮换登录凭据
+⚠️ **Important**:
+- These credentials are intended for development and QA environments only.  
+- Always rotate default passwords before deploying to production.  
+- Enforce strong password policies for every role.  
+- Review and update credentials on a regular schedule.
 
-## 技术说明
+## Implementation Detail
 
-登录凭据存储在 `src/data/mockData.js` 文件中的 `accounts` 数组中。如需修改登录信息，请编辑该文件。
+Credentials are defined in `src/data/mockData.js` under the `accounts` array. Update that file if you need to modify login data.
 
 ---
 
-*最后更新: 2025年9月26日*
+*Last updated: 26 Sept 2025*

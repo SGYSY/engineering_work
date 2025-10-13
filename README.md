@@ -4,7 +4,15 @@ This repository contains a purely front-end prototype that mirrors the major flo
 
 ## Quick start
 
-1. Open `index.html` in a modern browser (Chrome/Edge >= 110 recommended).
+1. Open `index.html` in a modern browser (Chrome/Edge ≥ 110 recommended), **or** serve the folder with Node to match a “real” origin:
+   ```powershell
+   # Recommended for Windows users – binds to localhost on port 5000
+   npx serve --listen tcp://127.0.0.1:5000
+
+   # If port 3000 is available you can use:
+   npx serve --listen tcp://127.0.0.1:3000
+   ```
+   The `serve` CLI prints the exact URL when it launches. Press `Ctrl+C` to stop.
 2. Use the provided demo accounts from the login panel (student / hr / teacher / admin).
 3. Actions persist via `localStorage`; use the **Reset State** button in DevTools (`localStorage.clear()`) or remove the `career-platform-state` key to start fresh.
 

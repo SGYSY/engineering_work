@@ -27,14 +27,14 @@ export function renderStudentApplications({ state, actions, toaster }) {
   const listCard = document.createElement("section");
   listCard.className = "card";
   listCard.innerHTML = `
-    <h3 class="section-title">${t("投递列表")}</h3>
+    <h3 class="section-title">${t("Applications")}</h3>
     <table class="table table--striped">
       <thead>
         <tr>
-          <th>${t("岗位名称")}</th>
-          <th>${t("企业")}</th>
-          <th>${t("投递时间")}</th>
-          <th>${t("当前状态")}</th>
+          <th>${t("Job Title")}</th>
+          <th>${t("Company")}</th>
+          <th>${t("Submitted At")}</th>
+          <th>${t("Current Status")}</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -87,7 +87,7 @@ export function renderStudentApplications({ state, actions, toaster }) {
 
     if (!applications.length) {
       const empty = document.createElement("tr");
-      empty.innerHTML = `<td colspan="4" style="text-align:center; padding:24px; color: var(--text-light);">${t("暂无投递记录")}</td>`;
+      empty.innerHTML = `<td colspan="4" style="text-align:center; padding:24px; color: var(--text-light);">${t("No applications available")}</td>`;
       tbody.appendChild(empty);
     }
   }
@@ -96,7 +96,7 @@ export function renderStudentApplications({ state, actions, toaster }) {
     syncApplications();
     const current = applications.find((item) => item.id === activeId);
     if (!current) {
-      detailCard.innerHTML = `<div class="empty-state">${t("请选择投递记录")}</div>`;
+      detailCard.innerHTML = `<div class="empty-state">${t("Select an application to view details")}</div>`;
       return;
     }
 
@@ -127,7 +127,7 @@ export function renderStudentApplications({ state, actions, toaster }) {
             `
           )
           .join("")
-      : `<div class="empty-state" style="height:120px;">${t("暂无消息")}</div>`;
+      : `<div class="empty-state" style="height:120px;">${t("No messages yet")}</div>`;
 
     const attachments = Array.isArray(current.attachments) ? current.attachments : [];
     const attachmentsHtml = attachments.length
@@ -143,40 +143,40 @@ export function renderStudentApplications({ state, actions, toaster }) {
                   <div style="color: var(--text-light); font-size:12px;">${meta}</div>
                 </div>
                 <div class="table-actions">
-                  <button class="button button--ghost button--sm" data-action="remove-attachment" data-attachment-index="${index}" data-attachment-id="${attachmentId}">${t("删除")}</button>
+                  <button class="button button--ghost button--sm" data-action="remove-attachment" data-attachment-index="${index}" data-attachment-id="${attachmentId}">${t("Remove")}</button>
                 </div>
               </div>
             `;
           })
           .join("")}</div>`
-      : `<div class="empty-state" style="height:120px;">${t("暂无附件")}</div>`;
+      : `<div class="empty-state" style="height:120px;">${t("No attachments uploaded")}</div>`;
 
     detailCard.innerHTML = `
       <div class="page-header" style="margin-bottom:16px;">
         <div>
           <h3 class="section-title" style="margin-bottom:4px;">${current.jobTitle}</h3>
-          <div style="color: var(--text-light); font-size: 13px;">${current.company} · ${t("投递于")} ${current.submitDate}</div>
+          <div style="color: var(--text-light); font-size: 13px;">${current.company} · ${t("Submitted on")} ${current.submitDate}</div>
         </div>
         <span class="badge badge--success">${t(current.status)}</span>
       </div>
       <div>
-        <h4 style="font-size:15px; font-weight:600; margin-bottom:10px;">${t("状态时间线")}</h4>
+        <h4 style="font-size:15px; font-weight:600; margin-bottom:10px;">${t("Status Timeline")}</h4>
         <div class="timeline">${timelineHtml}</div>
       </div>
       <div style="margin-top:18px;">
         <div class="page-header" style="margin-bottom:12px;">
-          <h4 style="font-size:15px; font-weight:600; margin-bottom:0;">${t("沟通消息")}</h4>
+          <h4 style="font-size:15px; font-weight:600; margin-bottom:0;">${t("Messages")}</h4>
           <div class="table-actions">
-            <button class="button button--ghost button--sm" data-action="append-msg">${t("补充消息")}</button>
+            <button class="button button--ghost button--sm" data-action="append-msg">${t("Add Message")}</button>
           </div>
         </div>
         ${messagesHtml}
       </div>
       <div style="margin-top:18px;">
         <div class="page-header" style="margin-bottom:12px;">
-          <h4 style="font-size:15px; font-weight:600; margin-bottom:0;">${t("附件资料")}</h4>
+          <h4 style="font-size:15px; font-weight:600; margin-bottom:0;">${t("Attachments")}</h4>
           <div class="table-actions">
-            <button class="button button--ghost button--sm" data-action="upload-attachment">${t("上传附件")}</button>
+            <button class="button button--ghost button--sm" data-action="upload-attachment">${t("Upload Attachment")}</button>
           </div>
         </div>
         ${attachmentsHtml}
@@ -195,7 +195,7 @@ export function renderStudentApplications({ state, actions, toaster }) {
       const name = file.name || "attachment.pdf";
       const isPdf = (file.type && file.type.toLowerCase() === "application/pdf") || /\.pdf$/i.test(name);
       if (!isPdf) {
-        toaster.show(t("仅支持上传PDF文件"), { type: "warn" });
+        toaster.show(t("Only PDF files are supported"), { type: "warn" });
         return;
       }
       const attachment = {
@@ -205,7 +205,7 @@ export function renderStudentApplications({ state, actions, toaster }) {
         uploadedAt: new Date().toISOString()
       };
       actions.addApplicationAttachment(current.id, attachment);
-      toaster.show(t("附件已更新"), { type: "success" });
+      toaster.show(t("Attachment uploaded"), { type: "success" });
       renderDetail();
     });
 
@@ -217,10 +217,10 @@ export function renderStudentApplications({ state, actions, toaster }) {
       event.stopPropagation();
 
       if (action === "append-msg") {
-        const value = prompt(t("请输入要补充的沟通信息："));
+        const value = prompt(t("Enter an additional message to share with the reviewer:"));
         if (value) {
           actions.appendApplicationMessage(current.id, value);
-          toaster.show(t("消息已补充"), { type: "success" });
+          toaster.show(t("Message added"), { type: "success" });
         }
       }
 
@@ -233,7 +233,7 @@ export function renderStudentApplications({ state, actions, toaster }) {
   const attachmentId = target.dataset.attachmentId || null;
   const attachmentIndex = target.dataset.attachmentIndex ?? null;
         actions.removeApplicationAttachment(current.id, attachmentId, attachmentIndex);
-        toaster.show(t("附件已移除"), { type: "info" });
+        toaster.show(t("Attachment removed"), { type: "info" });
         renderDetail();
       }
     };
